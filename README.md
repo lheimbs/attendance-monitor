@@ -1,2 +1,2 @@
-# attendance_monitor
+# attendance-monitor
 Repository for my Bachelorthesis, Title TBD
