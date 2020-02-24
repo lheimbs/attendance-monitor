@@ -1,0 +1,32 @@
+\documentclass[10pt,a4paper,ngerman,twocolumn]{article}
+\usepackage[ngerman]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage[a4paper, right=2cm, top=3cm, left=3cm, bottom=3cm]{geometry}
+
+\usepackage{cite}
+
+\usepackage{proposal}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Proposal zur Bachelorarbeit}
+\lhead{Technische Hochschule Nürnberg}
+
+
+\title{\textbf{Anwesenheitserkennung mittels Wifi Probe Requests}}
+\author{Lennart Heimbs, Bachelorstudium Medizintechnik}
+\betreuer{Prof.-Dr. Oliver Hofmann, Betreuender Dozent der Technischen Hochschule Nürnberg}
+
+\begin{document}
+    \maketitle
+
+    \input{sections/tex/introduction}
+    \input{sections/tex/goal}
+    \input{sections/tex/approach}
+
+    \bibliographystyle{alpha}
+    \bibliography{references}
+\end{document}
