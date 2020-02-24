@@ -1,0 +1,25 @@
+% Eigentliche Ausgabe der Titelseite
+\renewcommand{\@maketitle}
+{%
+	\hypersetup{%
+		pdftitle={\@title},
+		pdfsubject={Projektarbeit \@semester},
+		pdfauthor={\@author},
+	}%
+	\begin{center}
+	  \vskip 2em%
+		{\titlefont\huge \@title \par}%
+		\vskip 2em%
+		{\large\textbf{Projektarbeit}\par}%
+		{\large \@author\par}%
+		\vskip 2em%
+		{\large Fakultät Elektrotechnik Feinwerktechnik Informationstechnik, \\
+		Technische Hochschule Nürnberg Georg Simon Ohm,\\
+		Wassertorstraße 10,\\
+		90489 Nürnberg, Deutschland\\
+		Betreuer: \@betreuer\par}%
+		\vskip 2em%
+		{\large \textbf{Hinweis:} Der Autor des entsprechenden Abschnitts ist in der Fußzeile auf der linken Seite zu finden.}
+		\vspace*{3em}	%
+	\end{center}%
+}
