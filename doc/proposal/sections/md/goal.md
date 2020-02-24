@@ -9,8 +9,7 @@ Es soll ein Mechanismus zur Sammlung der Requests erarbeitet werden.
 anschließend sollen, ausgehend von einer Literaturrecherche, verschiedene Methodiken zur Auswertung der Requests experimentell implementiert und verglichen werden.
 Anhand der Ergebnisse des Vergleichs soll eine Prototypische Anwendung zur Anwesenheitskontrolle im Patktikums-/Laborumfeld entstehen.
 
-Im Rahmen der Analyse der Probe Requests muss besonders auf die eindeutige Identifizierung der Personen geachtet werden um eine Anwesenheitsliste generieren zu können.
-Datenschutztechnische Fragen, die im Rahmen der Datensammlung (MAC-Adresse etc) aufkommen sollen in dieser Arbeit nicht behandlet werden.
+Im Rahmen der Analyse der Probe Requests 
 
 
 
