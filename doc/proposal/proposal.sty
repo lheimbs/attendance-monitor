@@ -1,0 +1,50 @@
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{proposal}
+
+%% Neue User-Befehle
+\newcommand{\@betreuer}{}
+\newcommand{\betreuer}[1]{\renewcommand{\@betreuer}{#1}}
+
+% Eigentliche Ausgabe der Titelseite
+\renewcommand{\@maketitle}
+{
+    \begin{center}
+        \vskip -2em
+        {\huge \@title \par}
+        \vskip 1em
+		{\textit \@author \par}
+        {\textit \@betreuer \par}
+        \vskip 1em
+	\end{center}
+}
+
+\renewcommand{\maketitle}{
+  \if@twocolumn
+    \ifnum \col@number=\@ne
+      \@maketitle
+    \else
+      \twocolumn[\@maketitle]%
+    \fi
+  \else
+    \newpage
+    \global\@topnum\z@
+    \@maketitle
+  \fi
+}
+
+% Wir wollen Latex beim Setzen des Literaturverzeichnisses
+% nicht ganz so pingelig sein lassen, da wir enge Spalten verwenden
+\newcommand{\orig@bibliography}{}
+\let\orig@bibliography\bibliography % Alte Definition in orig@... speichern
+\renewcommand{\bibliography}        % \bibliography neu definieren
+{
+	\tolerance 1414                   % Toleranzwerte setzen (siehe l2tabu)
+	\hbadness 1414                    % ...
+	\emergencystretch 1.5em           % ...
+	\hfuzz 0.3pt                      % ...
+	\widowpenalty=10000               % ...
+	\vfuzz \hfuzz                     % ...
+	\raggedbottom                     % ...
+	\orig@bibliography                % und das Originalkommando aufrufen
+}
