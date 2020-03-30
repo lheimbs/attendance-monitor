@@ -21,7 +21,7 @@ git clone https://github.com/seemoo-lab/nexmon.git
 cd nexmon
 
 FILE=/usr/lib/arm-linux-gnueabihf/libisl.so.10
-if [ ! test -f "$FILE" ]; then
+if [[ ! -f "$FILE" ]]; then
     cd ~/nexmon/buildtools/isl-0.10
     ./configure
     make
@@ -30,7 +30,7 @@ if [ ! test -f "$FILE" ]; then
 fi
 
 FILE=/usr/lib/arm-linux-gnueabihf/libmpfr.so.4
-if [ ! test -f "$FILE" ]; then
+if [[ ! -f "$FILE" ]]; then
     cd ~/nexmon/buildtools/mpfr-3.1.4
     autoreconf -f -i
     ./configure
