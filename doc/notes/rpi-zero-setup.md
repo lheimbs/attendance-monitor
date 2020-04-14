@@ -68,18 +68,19 @@ ifconfig mon0 up
 
 # get path of default driver
 #modinfo brcmfmac
+orig_driver=$(modinfo brcmfmac | awk '/filename/ {print $2}')
 # ex: /lib/modules/4.19.66+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
 
 # backup original firmware
-#mv "<orig_fw.ko>" "<orig_fw.ko.orig>"
+mv "$orig_driver" "$orig_driver.orig"
 
 # copy modified driver
-#cp "<nexmon_fw.ko>" "<orig_fw.ko>"
+cp ~/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/brcmfmac.ko "$orig_driver"
 
 # generate new dependency
-#depmod -a
+depmod -a
 
-# reboot
+reboot
 ```
 
 Monitor mode works now on Pi Zero
