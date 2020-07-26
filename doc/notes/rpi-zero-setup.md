@@ -9,7 +9,7 @@ Setup Script
 sudo apt update
 sudo apt upgrade
 
-sudo apt install raspberrypi-kernel-headers git libgmp3-dev gawk qpdf bison flex make automake autoreconf tcpdump
+sudo apt install raspberrypi-kernel-headers git libgmp3-dev gawk qpdf bison flex make automake autoreconf tcpdump libtool libtool-bin
 
 # Kernel needs reboot to update
 sudo reboot
@@ -24,8 +24,7 @@ FILE=/usr/lib/arm-linux-gnueabihf/libisl.so.10
 if [[ ! -f "$FILE" ]]; then
     cd ~/nexmon/buildtools/isl-0.10
     ./configure
-    make
-    make install
+    make && make install
     ln -s /usr/local/lib/libisl.so /usr/lib/arm-linux-gnueabihf/libisl.so.10
 fi
 
@@ -34,8 +33,7 @@ if [[ ! -f "$FILE" ]]; then
     cd ~/nexmon/buildtools/mpfr-3.1.4
     autoreconf -f -i
     ./configure
-    make
-    make install
+    make && make install
     ln -s /usr/local/lib/libmpfr.so /usr/lib/arm-linux-gnueabihf/libmpfr.so.4
 fi
 
