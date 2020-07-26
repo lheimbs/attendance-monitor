@@ -7,6 +7,9 @@
 # ignore python venvs
 venv/
 
+# ignore jupyter checkpoints
+.ipynb_checkpoints/
+
 doc/resources
 doc/resources/*
 
