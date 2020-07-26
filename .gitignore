@@ -1,3 +1,5 @@
+# ignore database files
+*.db
 
 doc/resources
 doc/resources/*
