@@ -4,6 +4,9 @@
 # vscode files
 .vscode/
 
+# ignore python venvs
+venv/
+
 doc/resources
 doc/resources/*
 
