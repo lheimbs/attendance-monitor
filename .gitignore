@@ -1,6 +1,9 @@
 # ignore database files
 *.db
 
+# vscode files
+.vscode/
+
 doc/resources
 doc/resources/*
 
