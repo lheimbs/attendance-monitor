@@ -8,7 +8,14 @@
 
 \usepackage[a4paper, right=2cm, top=3cm, left=3cm, bottom=3cm]{geometry}
 
-\usepackage{cite}
+% \usepackage{cite}
+\usepackage{csquotes}
+\usepackage[
+    style=numeric,
+    citestyle=numeric
+]{biblatex}
+\addbibresource{references.bib} %Imports bibliography file
+
 
 \usepackage{proposal}
 
@@ -30,6 +37,7 @@
     \input{sections/tex/goal}
     \input{sections/tex/approach}
 
-    \bibliographystyle{alpha}
-    \bibliography{references}
+    % \bibliographystyle{alpha}
+    % \bibliography{references}
+    \printbibliography
 \end{document}
