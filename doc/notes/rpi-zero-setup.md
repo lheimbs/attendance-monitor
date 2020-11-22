@@ -9,7 +9,8 @@ Setup Script
 sudo apt update
 sudo apt upgrade
 
-sudo apt install raspberrypi-kernel-headers git libgmp3-dev gawk qpdf bison flex make automake autoreconf tcpdump libtool libtool-bin texinfo
+sudo apt install raspberrypi-kernel-headers git libgmp3-dev gawk qpdf bison flex make automake autoconf tcpdump libtool libtool-bin texinfo
+sudo apt install autoreconf
 
 # Kernel needs reboot to update
 sudo reboot
