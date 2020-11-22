@@ -26,7 +26,7 @@ if [[ ! -f "$FILE" ]]; then
     cd ~/nexmon/buildtools/isl-0.10
     ./configure
     make && make install
-    ln -s /usr/local/lib/libisl.so /usr/lib/arm-linux-gnueabihf/libisl.so.10
+    ln -s /usr/local/lib/libisl.so "$FILE"
 fi
 
 FILE=/usr/lib/arm-linux-gnueabihf/libmpfr.so.4
@@ -35,7 +35,7 @@ if [[ ! -f "$FILE" ]]; then
     autoreconf -f -i
     ./configure
     make && make install
-    ln -s /usr/local/lib/libmpfr.so /usr/lib/arm-linux-gnueabihf/libmpfr.so.4
+    ln -s /usr/local/lib/libmpfr.so "$FILE"
 fi
 
 cd ~/nexmon
