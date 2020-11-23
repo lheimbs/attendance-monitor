@@ -1,14 +1,14 @@
 \section{Ausgangssituation}
 \label{introduction}
 
-Im Rahmen der Corona Pandemie ist es wichtig geworden, im Rahmen des sogenannten "Contact-Tracing", anwesende Personen, besonders in geschlossenen Räumen, erfassen zu können.
-Im Hochschulalltag trifft dies besonders auf die Anwesenheit von Studenten während Präsenzvorlesungen und Praktika zu.
+Besonders im Kontext der Corona Pandemie ist es wichtig geworden, im Rahmen des sogenannten "Contact-Tracing", anwesende Personen in geschlossenen Räumen erfassen zu können.
+Im Hochschulalltag trifft dies speziell auf die Anwesenheit von Studenten während Präsenzvorlesungen und Praktika zu.
 Üblicherweise wird die Präsenz der teilnehmenden Personen mittels Anwesenheitsblättern, auf denen Name und Unterschrift einzutragen sind, oder zu scanenden QR-Codes erfasst.
 Um die Anwesenheitskontrolle zu erleichtern und zu digitalisieren würde sich ein Lokalisierungssystem anbieten, welches die Anwesenheit automatisch protokolliert.
 \\
 
 Durch die Allgegenwart von Smartphones heutzutage liegt es nahe dessen Funktionen zu benutzen, um die Anwesenheit von Studenten festzustellen.
-Somit soll auf ein WLAN basiertes Lokalisierungssystem zurückgegriffen werden, welches auf sogenannten Wifi Probe Requests basiert.
+Somit soll auf ein WLAN basiertes Lokalisierungssystem zurückgegriffen werden, welches sogenannte Wifi Probe-Requests benutzt.
 Probe-Requests sind Kontrollframes von WLAN fähigen Geräten, die periodisch gesendet werden, um bekannte WLAN-Netzwerke zu finden und sich automatisch mit diesen zu verbinden. \cite{wifiproberequests2019}
-Im Rahmen eines Probe-Requests werden die MAC-Adresse des Senders, die Signalstärke und dem Gerät bekannte Accesspoints öffentlich gesendet.
+Im Rahmen eines Probe-Requests werden die MAC-Adresse des Senders, die Signalstärke und weitere zur Idenifizierung verwendbare Daten öffentlich übertragen.
 Dies machen sich bereits einige Forschungsarbeiten zu Nutze, um Anwesenheit von Personen zu erkennen bzw. Personen zu tracken. \cite{sail2014,sherlock2018}
