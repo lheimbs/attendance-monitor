@@ -9,7 +9,8 @@ Setup Script
 sudo apt update
 sudo apt upgrade
 
-sudo apt install raspberrypi-kernel-headers git libgmp3-dev gawk qpdf bison flex make automake autoreconf tcpdump libtool libtool-bin
+sudo apt install raspberrypi-kernel-headers git libgmp3-dev gawk qpdf bison flex make automake autoconf tcpdump libtool libtool-bin texinfo
+sudo apt install autoreconf
 
 # Kernel needs reboot to update
 sudo reboot
@@ -25,7 +26,7 @@ if [[ ! -f "$FILE" ]]; then
     cd ~/nexmon/buildtools/isl-0.10
     ./configure
     make && make install
-    ln -s /usr/local/lib/libisl.so /usr/lib/arm-linux-gnueabihf/libisl.so.10
+    ln -s /usr/local/lib/libisl.so "$FILE"
 fi
 
 FILE=/usr/lib/arm-linux-gnueabihf/libmpfr.so.4
@@ -34,7 +35,7 @@ if [[ ! -f "$FILE" ]]; then
     autoreconf -f -i
     ./configure
     make && make install
-    ln -s /usr/local/lib/libmpfr.so /usr/lib/arm-linux-gnueabihf/libmpfr.so.4
+    ln -s /usr/local/lib/libmpfr.so "$FILE"
 fi
 
 cd ~/nexmon
@@ -85,4 +86,4 @@ Monitor mode should work now on Pi Zero
 
 # Collecting Probes
 
-[https://github.com/klein0r/probemon](Probemon) from klein0r is used
+[Probemon](https://github.com/klein0r/probemon) from klein0r is used
