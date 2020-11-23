@@ -1,0 +1,70 @@
+\documentclass[10pt,a4paper,ngerman]{article}
+% ,twocolumn
+\usepackage[ngerman]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+
+% against underfull boxes
+\usepackage{microtype}
+
+\usepackage[a4paper, right=2cm, top=3cm, left=3cm, bottom=3cm]{geometry}
+
+% \usepackage{cite}
+% \usepackage{csquotes}
+% \usepackage[
+%     style=numeric,
+%     citestyle=numeric
+% ]{biblatex}
+% \addbibresource{references.bib} %Imports bibliography file
+
+
+% \usepackage{proposal}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+% \rhead{Proposal zur Bachelorarbeit}
+% \lhead{Technische Hochschule Nürnberg}
+
+
+\title{\textbf{Analyse von Wifi Probe-Requests zur personenbezogenen Anwesenheitserkennung}}
+\author{Lennart Heimbs, Bachelorstudium Medizintechnik}
+% \betreuer{Prof.-Dr. Oliver Hofmann, Betreuender Dozent der Technischen Hochschule Nürnberg}
+
+\begin{document}
+    \maketitle
+
+    \section*{Grundlage}
+    \begin{itemize}
+        \item WLAN fähige Geräte haben die Eigenschaft sich automatisch mit bekannten WLAN-Netzen zu Verbinden
+        \begin{itemize}
+           \item Nutzung von Probe-Requests
+        \end{itemize}
+        \item Probe-Requests sind Kontrollframes von WLAN fähigen Geräten, die periodisch gesendet werden, um bekannte WLAN-Netzwerke zu finden und sich automatisch mit diesenzu verbinden
+        \item enthalten die MAC-Adresse des sendenden Geräts und zum Teil auch die SSID von bereits bekannten WLAN-Netzen
+    \end{itemize}
+    \includegraphics[scale=0.4]{/home/lenny/Pictures/Screenshots/Screenshot_2020-11-20_probe_reqs.png}
+    \\
+
+    \section*{Ziele}
+    \begin{itemize}
+        \item Aufnahme Probe-Requests mit Raspberry Pi
+        \item Analyse der aufgenommenen Requests anhand von Algorithmen aus der Literatur
+        \item Untersuchung bezüglich Zuverlässigkeit der Anwesenheitserkennung
+        \item Prototypische implementierung einer Anwendung zur Anwesenheitserkennung in der Hochschule
+    \end{itemize}
+
+    \section*{Aktuelles Arbeitspaket}
+    \begin{itemize}
+        \item Verbesserung der Aufnahme der Probe-Requests
+        \item Vorläufige analyse der bereits aufgenommenen Daten
+    \end{itemize}
+
+    \section*{Nächster Arbeitsschritt}
+    \begin{itemize}
+        \item Implementierung der Analysealgorithmen
+    \end{itemize}
+
+\end{document}
