@@ -1,0 +1,44 @@
+{% macro render_flashes(class) %}
+    {% with msgs = get_flashed_messages(category_filter=[class]) %}
+        {% for message in msgs %}
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">{{ class }}</strong>
+                    <small class="text-muted">just now</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    {{ message }}
+                </div>
+            </div>
+
+
+            {# <div class="flash {{ class }} message">
+                <span>{{ msg }}</span>
+                <i class="close-flash material-icons">close</i>
+            </div> #}
+        {% endfor %}
+    {% endwith %}
+{% endmacro %}
+
+
+{% macro render_all_flashes() %}
+<div class="toast-container">
+    {{ render_flashes('error') }}
+    {{ render_flashes('warning') }}
+    {{ render_flashes('success') }}
+    {{ render_flashes('info') }}
+</div>
+{% endmacro %}
+
+
+{% macro render_error_page(error_num, error_text) %}
+<div class="error_wrapper">
+<section class="error-container">
+  <span><span>{{ error_num[0] }}</span></span>
+  <span>{{ error_num[1] }}</span>
+  <span><span>{{ error_num[2] }}</span></span>
+</section>
+<p class="zoom-area">{{ error_text }}</p>
+</div>
+{% endmacro %}

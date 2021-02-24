@@ -1,0 +1,12 @@
+{% from "macros.html" import render_error_page %}
+
+{% if not skip_base %}
+{% extends "base.html" %}
+{% endif %}
+
+{% block extra_assets %}
+{% endblock %}
+
+{% block content %}
+    {{ render_error_page(error_code, error_msg) }}
+{% endblock %}

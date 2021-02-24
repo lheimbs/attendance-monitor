@@ -1,0 +1,11 @@
+{% from "macros.html" import render_error_page %}
+
+{% extends "base.html" %}
+
+{% block extra_assets %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide&display=swap" />
+{% endblock %}
+
+{% block content %}
+    {{ render_error_page("404", "Page not found")}}
+{% endblock %}

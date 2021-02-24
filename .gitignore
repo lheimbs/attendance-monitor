@@ -15,6 +15,11 @@ venv/
 
 # ignore pyhton cache
 */__pycache__/
+__pycache__/
+
+# ignore webassets for flask app
+.webassets-cache/
+attendancecontrol/attendancecontrol/static/gen/
 
 doc/resources
 doc/resources/*

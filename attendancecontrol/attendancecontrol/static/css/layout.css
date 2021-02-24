@@ -1,0 +1,4 @@
+.vertical-center {
+    min-height: 100%; /* fallback */
+    min-height: 100vh;
+}
