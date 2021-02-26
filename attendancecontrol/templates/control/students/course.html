@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ object.name }}</h1>
+<p>Uuid: {{ object.uuid }}</p>
+<p>Duration: {{ object.duration }}</p>
+<ul>
+{% for day in object.start_times.all %}
+    <li>{{ day.day }}: {{ day.time|time }}</li>
+{% empty %}
+    <li>No times registered for this course</li>
+{% endfor %} 
+</ul>
+<p>Ongoing: {{ object.is_ongoing }}</p>
+{% endblock %}
