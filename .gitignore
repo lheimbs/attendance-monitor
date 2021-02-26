@@ -13,8 +13,12 @@ venv/
 # ignore jupyter checkpoints
 .ipynb_checkpoints/
 
-# ignore pyhton cache
-*/__pycache__/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
 
 doc/resources
 doc/resources/*
