@@ -20,6 +20,10 @@ __pycache__/
 # C extensions
 *.so
 
+# sqlite databases
+*.db
+*.sqlite3
+
 doc/resources
 doc/resources/*
 
