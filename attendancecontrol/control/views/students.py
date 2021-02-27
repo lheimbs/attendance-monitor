@@ -30,7 +30,7 @@ class StudentCoursesList(ListView):
     model = Course
     ordering = ('name', )
     context_object_name = 'courses'
-    template_name = 'control/courses_list.html'
+    template_name = 'control/students/student.html'
 
     def get_queryset(self):
         student = self.request.user.student
@@ -39,5 +39,7 @@ class StudentCoursesList(ListView):
 
 @method_decorator([login_required, student_required], name='dispatch')
 class StudentCourseDetail(DetailView):
-    model = Course
     template_name = 'control/students/course.html'
+
+    def get_queryset(self):
+        return self.request.user.student.courses.all()

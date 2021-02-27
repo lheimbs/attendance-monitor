@@ -3,13 +3,15 @@
 {% block content %}
 <h1>{{ object.name }}</h1>
 <p>Uuid: {{ object.uuid }}</p>
-<p>Duration: {{ object.duration }}</p>
+<p>Duration: {{ object.duration }}min</p>
 <ul>
 {% for day in object.start_times.all %}
-    <li>{{ day.day }}: {{ day.time|time }}</li>
+    <li>{{ day.get_day_display }}: {{ day.time|time }}</li>
 {% empty %}
     <li>No times registered for this course</li>
 {% endfor %} 
 </ul>
-<p>Ongoing: {{ object.is_ongoing }}</p>
+{% if object.is_ongoing %}
+    <p>Course is currently ongoing. Join <a href="#">here</a></p>
+{% endif %}
 {% endblock %}

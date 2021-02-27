@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron py-2">
+    <div class="row">
+        <a class="col-6 btn btn-primary" href="#" role="button">Add Course by ID</a>
+    </div>
+</div>
+
+<h2>Your Courses</h2>
+<ul>
+    {% for course in courses %}
+        <li><a href="{{ course.get_absolute_student_url }}">{{ course.name }}</a></li>
+    {% empty %}
+        <li>No classes yet...</li>
+    {% endfor %}
+</ul>
+{% endblock %}
