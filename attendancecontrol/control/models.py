@@ -94,9 +94,15 @@ class Course(models.Model):
     start_times = models.ManyToManyField(WeekDay)
     is_ongoing = models.BooleanField(default=False)
 
-    def get_absolute_url(self):
+    def get_absolute_student_url(self):
         from django.urls import reverse
-        return reverse('students:course-detail', args=[str(self.id)])
+        # user = self.request
+        return reverse('students:detail', args=[str(self.id)])
+
+    def get_absolute_teacher_url(self):
+        from django.urls import reverse
+        # user = self.request
+        return reverse('teacher:detail', args=[str(self.id)])
 
     def __str__(self):
         return (
