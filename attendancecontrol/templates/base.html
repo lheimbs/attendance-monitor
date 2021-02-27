@@ -4,20 +4,58 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{% static 'css/app.css' %}">
-    <title>Django People</title>
+    <title>Attendance monitor</title>
   </head>
   <body>
+    <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'home' %}">Attendance monitor</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="justify-content-end collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav">
+            <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
+            {% if user.is_authenticated and user.is_teacher %}
+              <a class="nav-link" href="{% url 'teacher:add' %}" tabindex="-1">Add Course</a>
+              <a class="nav-link" href="{% url 'teacher:courses' %}" tabindex="-1">Show Courses</a>
+            {% endif %}
+            {% if user.is_authenticated and user.is_student or user.is_teacher %}
+              <a class="nav-link" href="#">Edit Personal Data</a>
+            {% endif %}
+            {% if user.is_authenticated %}
+              <a class="nav-link" href="{% url 'logout' %}" tabindex="-1">Logout</a>
+              <span class="navbar-text text-wrap py-0 pl-2" style="width: 13rem; font-size: 0.8rem !important;">
+                Logged in
+              {% if user.is_student %}
+                  as a Student
+              {% elif user.is_teacher %}
+                  as a Teacher
+              {% endif %}
+              with E-Mail: {{ user.email }}
+              </span>
+            {% else %}
+              <a class="nav-link" href="{% url 'login' %}" tabindex="-1">Login</a>
+              <a class="nav-link" href="{% url 'signup' %}" tabindex="-1">Sign Up</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </nav>
+    <hr class="mt-0 mb-4">
+
     <div class="container">
       <div class="row justify-content-center">
         <div class="col-8">
-          <h1 class="mt-2">Attendance Monitor</h1>
-          <hr class="mt-0 mb-4">
+          {# <h1 class="mt-2"></h1> #}
+          {#  #}
           {% block content %}
           {% endblock %}
         </div>
       </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
   </body>
 </html>
