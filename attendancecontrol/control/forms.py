@@ -36,11 +36,7 @@ class TeacherSignUpForm(UserCreationForm):
         return user
 
 
-class StudentSignUpForm(UserCreationForm):
-    class Meta:
-        model = User
-        fields = ('email',)
-
+class StudentSignUpForm(CustomUserCreationForm):
     student_nr = forms.IntegerField(label="Matrikel Nr.")
     mac = MACAddressField(label="MAC Address")
 
@@ -55,12 +51,3 @@ class StudentSignUpForm(UserCreationForm):
             mac=self.cleaned_data.get('mac')
         )
         return user
-
-
-# class StudentInterestsForm(forms.ModelForm):
-#     class Meta:
-#         model = Student
-#         fields = ('interests', )
-#         widgets = {
-#             'interests': forms.CheckboxSelectMultiple
-#         }
