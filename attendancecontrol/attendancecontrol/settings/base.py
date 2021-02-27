@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'agv#*vo=mrj_47qr2xz60+t2c!ve(#i8-ndpv5@4m6)xtp6yo^'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'agv#*vo=mrj_47qr2xz60+t2c!ve(#i8-ndpv5@4m6)xtp6yo^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'fullurl',
     'crispy_forms',
+    'qr_code',
 ]
 
 MIDDLEWARE = [
@@ -74,7 +76,6 @@ TEMPLATES = [
         },
     },
 ]
-print(os.path.join(BASE_DIR, 'templates'))
 
 WSGI_APPLICATION = 'attendancecontrol.wsgi.application'
 
