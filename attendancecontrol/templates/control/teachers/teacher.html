@@ -17,15 +17,17 @@
                 <li class="list-group-item">No times registered for this course</li>
             {% endfor %} 
             </ul>
-            <div class="d-flex justify-content-around">
-                <a href="{{ course.get_absolute_teacher_url }}" class="btn btn-primary">Edit Course</a>
+            <div class="d-flex justify-content-around gx-1">
+                <a href="{{ course.get_absolute_teacher_url }}" class="btn btn-primary m-1 btn-sm">Show Course</a>
+                <a href="{{ course.get_absolute_teacher_edit_url }}" class="btn btn-primary m-1 btn-sm">Edit Course</a>
+                <a href="{{ course.get_absolute_teacher_delete_url }}" class="btn btn-primary m-1 btn-sm">Delete Course</a>
             </div>
         </div>
         </div>
     </div>
 {% empty %}
     <div class="jumbotron">
-    No classes yet...
+    No courses yet...
     </div>
 {% endfor %}
 </div>

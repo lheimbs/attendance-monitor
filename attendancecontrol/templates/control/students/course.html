@@ -1,17 +1,18 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>{{ object.name }}</h1>
-<p>Uuid: {{ object.uuid }}</p>
-<p>Duration: {{ object.duration }}min</p>
+<h1>{{ course.name }}</h1>
+<p>Duration: {{ course.duration }}min</p>
 <ul>
-{% for day in object.start_times.all %}
+{% for day in course.start_times.all %}
     <li>{{ day.get_day_display }}: {{ day.time|time }}</li>
 {% empty %}
     <li>No times registered for this course</li>
 {% endfor %} 
 </ul>
-{% if object.is_ongoing %}
+{% if course.is_ongoing %}
     <p>Course is currently ongoing. Join <a href="#">here</a></p>
 {% endif %}
+<a href="{{ course.get_absolute_student_leave_url }}" class="btn btn-primary m-1 btn-sm">Leave Course</a>
+
 {% endblock %}

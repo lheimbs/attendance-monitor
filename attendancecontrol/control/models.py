@@ -1,10 +1,15 @@
+from datetime import timedelta
+import secrets
 from uuid import uuid4
 
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+# from django.shortcuts import re
 from django.utils.translation import ugettext_lazy as _
 from macaddress.fields import MACAddressField
+from django.urls import reverse
 
 
 class CustomUserManager(BaseUserManager):
@@ -86,6 +91,40 @@ class WeekDay(models.Model):
             self.day, self.time
         )
 
+
+def generate_token():
+    return secrets.token_urlsafe(10)
+
+
+class AccessToken(models.Model):
+    token = models.CharField("Access Token", max_length=20, editable=False)
+    created = models.DateTimeField("Time the token has been generated", editable=False)
+
+    # added for future functionality where valid time is configurable
+    valid_time = models.IntegerField("Minutes the token is valid for", default=90)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created = timezone.now()
+            self.token = secrets.token_urlsafe(10)
+        return super().save(*args, **kwargs)
+
+    def is_token_valid(self, given_token):
+        if self.token == given_token:
+            return True
+        return False
+
+    def is_token_expired(self, custom_valid_time=None):
+        expiration_time = self.created + timedelta(seconds=(custom_valid_time or self.valid_time)*60)
+        if timezone.now() < expiration_time:
+            return False
+        return True
+
+    def __str__(self):
+        return f"created: {self.created}, valid for {self.valid_time}"
+
+
 class Course(models.Model):
     name = models.CharField("course name", max_length=200)
     uuid = models.UUIDField("course identifier", primary_key=False, unique=True, default=uuid4, editable=False)
@@ -94,20 +133,33 @@ class Course(models.Model):
     start_times = models.ManyToManyField(WeekDay)
     is_ongoing = models.BooleanField(default=False)
 
+    access_token = models.OneToOneField(AccessToken, on_delete=models.CASCADE, null=True)
+
     def get_absolute_student_url(self):
-        from django.urls import reverse
-        # user = self.request
-        return reverse('students:detail', args=[str(self.id)])
+        return reverse('student:detail', args=[str(self.id)])
+
+    def get_absolute_student_leave_url(self):
+        return reverse('student:leave_course', args=[str(self.id)])
+
+    def get_absolute_student_register_url(self):
+        if hasattr(self, 'access_token') and self.access_token:
+            token = self.access_token.token
+        else:
+            token = ""
+        return reverse('student:register_course', args=[str(self.id), token])
 
     def get_absolute_teacher_url(self):
-        from django.urls import reverse
-        # user = self.request
         return reverse('teacher:detail', args=[str(self.id)])
+
+    def get_absolute_teacher_delete_url(self):
+        return reverse('teacher:delete', args=[str(self.id)])
+
+    def get_absolute_teacher_edit_url(self):
+        return reverse('teacher:edit', args=[str(self.id)])
 
     def __str__(self):
         return (
             f"name: {self.name}, "
-            f"uuid: {self.uuid}, "
             f"min_attend_time: {self.min_attend_time}, "
             f"duration: {self.duration}"
         )
@@ -119,7 +171,13 @@ class Student(models.Model):
     mac = MACAddressField(null=True, blank=True, integer=False)
     courses = models.ManyToManyField(Course)
 
+    def __str__(self):
+        return f"user: {self.user}, stud.nr {self.student_nr}, mac: {self.mac}"
+
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     courses = models.ManyToManyField(Course)
+
+    def __str__(self):
+        return str(self.user)

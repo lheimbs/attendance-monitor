@@ -1,11 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.db import transaction
-# from django.forms import fields
-# from django.forms.utils import ValidationError
 from macaddress.formfields import MACAddressField
 
-from .models import Student, Teacher, User
+from .models import Student, Teacher, User, Course, WeekDay
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -32,8 +30,17 @@ class TeacherSignUpForm(UserCreationForm):
         user.is_teacher = True
         user.save()
         Teacher.objects.create(user=user)
-        # student.interests.add(*self.cleaned_data.get('interests'))
         return user
+
+
+class StudentUpdateForm(UserChangeForm):
+    class Meta:
+        model = User
+        fields = ('email',)
+
+    password = None
+    student_nr = forms.IntegerField(label="Matrikel Nr.")
+    mac = MACAddressField(label="MAC Address")
 
 
 class StudentSignUpForm(CustomUserCreationForm):
@@ -51,3 +58,30 @@ class StudentSignUpForm(CustomUserCreationForm):
             mac=self.cleaned_data.get('mac')
         )
         return user
+
+
+class WeekDayCreateForm(forms.ModelForm):
+    class Meta:
+        model = WeekDay
+        fields = ('day', 'time')
+
+
+class CourseCreateForm(forms.ModelForm):
+    class Meta:
+        model = Course
+        fields = ['name', 'min_attend_time', 'duration']
+
+
+WeekDaysFormSet = forms.formset_factory(
+    WeekDayCreateForm, extra=1
+)
+
+
+CourseWeekDaysFormSet = forms.modelformset_factory(
+    WeekDay, fields=('day', 'time'), extra=1, can_delete=True
+)
+
+
+class StudentCourseManualRegisrationForm(forms.Form):
+    id = forms.IntegerField(label="Course ID")
+    token = forms.CharField(max_length=30, min_length=10, label="Course Token")

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load qr_code %}
+
+{% block content %}
+<div class="jumbotron">
+    <div class="row text-center">
+        <h5 class="h3">
+            Registration is enabled until {{ expires|time }}
+        </h5>
+    </div>
+    <hr/>
+    <div class="row">
+        <div class="col">Course ID:</div>
+        <div class="col-md-auto fw-bold">{{ id }}</div>
+    </div>
+    <div class="row">
+        <div class="col">Course TOKEN:</div>
+        <div class="col-md-auto fw-bold">{{ token }}</div>
+    </div>
+    <div class="row">
+        <div id="modal-qr-code-container">
+            <img class="img-fluid" src="{% qr_url_from_text register_url size=8 version=10 image_format='png' %}" alt="{{ register_url }}">
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+<h2>Edit personal data</h2>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {{ form|crispy }}
+    <hr/>
+    <div class="row btn-control-container d-flex justify-content-between mx-2">
+        <a href="{% url 'change_password' %}" class="btn btn-secondary col">Change password</a>
+        <button type="submit" class="btn btn-success col">Save changes</button>
+    </div>
+</form>
+{% endblock %}

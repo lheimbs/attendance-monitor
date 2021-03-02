@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+<h2>Edit Course</h2>
+<form method="post" id="add-course-form">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {{ form|crispy }}
+    <hr/>
+    <div class="weekdays-container">
+    {{ week_days_formset.management_form|crispy }}
+    {% for wd_form in week_days_formset %}
+        {#{ wd_form.as_p }#}
+        <div class="row weekday_form">
+            {{ wd_form.id }}
+            {% if week_days_formset.can_delete %}
+                {{ wd_form.DELETE }}
+            {% endif %}
+            <div class="col-4">{{ wd_form.day|as_crispy_field }}</div>
+            <div class="col">{{ wd_form.time|as_crispy_field }}</div>
+            <div class="col-2 delete-weekday-container"></div>
+        </div>
+        {% if wd_form.errors %}
+        <div class="row">
+            {{ wd_form.errors.as_p }}
+        </div>
+        {% endif %}
+    {% endfor %}
+    </div>
+    <hr/>
+    <div class="row btn-control-container d-flex justify-content-between">
+        <button type="submit" class="btn btn-success">Update Course</button>
+    </div>
+</form>
+{% endblock %}
+
+
+{% block javascript %}
+<script src="{% static "dynamic_formsets/jquery.formset.js" %}" type="text/javascript"> </script>
+<script type="text/javascript">
+    $('.weekday_form').formset({
+        prefix: 'week_days',
+        addText: 'Add another date',
+        addCssClass: 'btn btn-outline-primary',
+        addContainerClass: 'weekdays-container',
+        deleteText: 'Remove datum',
+        deleteCssClass: 'btn btn-outline-dark btn-sm',
+        deleteContainerClass: 'delete-weekday-container',
+        hideLastAddForm: true,
+    });
+</script>
+{% endblock %}

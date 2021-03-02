@@ -1,26 +1,17 @@
 {% extends 'base.html' %}
-{% load qr_code %}
-{% load fullurl %}
-
 {% block content %}
 <div class="jumbotron">
     <div class="row">
         <h2 class="col">Course {{ course.name }}</h2>
-        <a href="{% url 'teacher:courses' %}" class="col-md-auto btn btn-outline-primary">Back</a>
+        <a href="{% url 'teacher:enable_course' course.id %}" class="col-md-auto btn btn-primary">Enable registration</a>
     </div>
     <hr class="mt-0 mb-4">
     <div class="row">
-        <div class="col-6">
-            <h2 class="h4">Course QR Code</h2>
-        </div>
         <div class="col-6">
             <h2 class="h4">Registered Students</h2>
         </div>
     </div>
     <div class="row">
-        <div class="col-6">
-            {% qr_from_text course_obj_url size=15 version=12 error_correction="L" %}
-        </div>
         <div class="col-6">
             {% for student in course.student_set.all %}
                 <p>{{ student.user }} - Mat. Nr.: {{ student.student_nr }}</p>
@@ -30,4 +21,5 @@
         </div>
     </div>
 </div>
+
 {% endblock %}

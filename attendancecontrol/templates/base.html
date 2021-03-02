@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{% static 'css/app.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <title>Attendance monitor</title>
   </head>
   <body>
@@ -17,13 +18,12 @@
         </button>
         <div class="justify-content-end collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav">
-            <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
+            <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Courses</a>
             {% if user.is_authenticated and user.is_teacher %}
               <a class="nav-link" href="{% url 'teacher:add' %}" tabindex="-1">Add Course</a>
-              <a class="nav-link" href="{% url 'teacher:courses' %}" tabindex="-1">Show Courses</a>
-            {% endif %}
-            {% if user.is_authenticated and user.is_student or user.is_teacher %}
-              <a class="nav-link" href="#">Edit Personal Data</a>
+              <a class="nav-link" href="{% url 'teacher:edit_account' user.id %}">Edit Personal Data</a>
+            {% elif user.is_authenticated and user.is_student %}
+              <a class="nav-link" href="{% url 'student:edit_account' user.id %}">Edit Personal Data</a>
             {% endif %}
             {% if user.is_authenticated %}
               <a class="nav-link" href="{% url 'logout' %}" tabindex="-1">Logout</a>
@@ -49,13 +49,18 @@
     <div class="container">
       <div class="row justify-content-center">
         <div class="col-8">
-          {# <h1 class="mt-2"></h1> #}
-          {#  #}
+          {% include 'messages.html' %}
+        </div>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-8">
           {% block content %}
           {% endblock %}
         </div>
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    {% block javascript %}
+    {% endblock %}
   </body>
 </html>
