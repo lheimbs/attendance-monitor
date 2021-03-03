@@ -1,4 +1,3 @@
-from datetime import timedelta
 import secrets
 from uuid import uuid4
 
@@ -60,36 +59,46 @@ class User(AbstractUser):
         return self.email
 
 
+class WeekDayChoices(models.IntegerChoices):
+    MONDAY = 0
+    TUESDAY = 1
+    WEDNESDAY = 2
+    THURSDAY = 3
+    FRIDAY = 4
+    SATURDAY = 5
+    SUNDAY = 6
+
+
 # Create your models here.
 class WeekDay(models.Model):
-    MONDAY = 'MON'
-    TUESDAY = 'TUE'
-    WEDNESDAY = 'WED'
-    THURSDAY = 'THU'
-    FRIDAY = 'FRI'
-    SATURDAY = 'SAT'
-    SUNDAY = 'SUN'
-    WEEKDAY_CHOICES = [
-        (MONDAY, 'Monday'),
-        (TUESDAY, 'Tuesday'),
-        (WEDNESDAY, 'Wednesday'),
-        (THURSDAY, 'Thursday'),
-        (FRIDAY, 'Friday'),
-        (SATURDAY, 'Saturday'),
-        (SUNDAY, 'Sunday'),
-    ]
-    day = models.CharField(
+    day = models.IntegerField(
         "course day",
-        max_length=3,
-        choices=WEEKDAY_CHOICES,
-        default=MONDAY,
+        choices=WeekDayChoices.choices,
+        default=WeekDayChoices.MONDAY,
     )
     time = models.TimeField("starting time of course")
 
     def __str__(self):
         return "day: {}, time: {}".format(
-            self.day, self.time
+            WeekDayChoices(self.day).label, self.time
         )
+
+    def get_this_weeks_date(self):
+        now = timezone.now().replace(
+            hour=self.time.hour,
+            minute=self.time.minute,
+            second=self.time.second,
+            microsecond=0
+        )
+        return now + timezone.timedelta(days=-now.weekday()+self.day)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="%(app_label)s_%(class)s_day_valid",
+                check=models.Q(day__in=WeekDayChoices.values),
+            )
+        ]
 
 
 def generate_token():
@@ -116,7 +125,7 @@ class AccessToken(models.Model):
         return False
 
     def is_token_expired(self, custom_valid_time=None):
-        expiration_time = self.created + timedelta(seconds=(custom_valid_time or self.valid_time)*60)
+        expiration_time = self.created + timezone.timedelta(seconds=(custom_valid_time or self.valid_time)*60)
         if timezone.now() < expiration_time:
             return False
         return True
@@ -131,7 +140,7 @@ class Course(models.Model):
     min_attend_time = models.IntegerField("minimum time present to count as attended in minutes", default=45)
     duration = models.IntegerField("course duration in minutes", default=90)
     start_times = models.ManyToManyField(WeekDay)
-    is_ongoing = models.BooleanField(default=False)
+    ongoing = models.BooleanField(default=False)
 
     access_token = models.OneToOneField(AccessToken, on_delete=models.CASCADE, null=True)
 
@@ -156,6 +165,15 @@ class Course(models.Model):
 
     def get_absolute_teacher_edit_url(self):
         return reverse('teacher:edit', args=[str(self.id)])
+
+    def is_ongoing(self):
+        if self.ongoing:
+            return True
+
+        for day in self.start_times.all():
+            if day.get_this_weeks_date() <= timezone.now() < day.get_this_weeks_date() + timezone.timedelta(minutes=self.duration):
+                return True
+        return False
 
     def __str__(self):
         return (

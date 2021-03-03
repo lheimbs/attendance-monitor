@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseForbidden
@@ -7,6 +5,7 @@ from django.shortcuts import redirect, get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, DetailView, DeleteView, UpdateView
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 
 from ..decorators import teacher_required
 from ..forms import TeacherSignUpForm, CourseCreateForm, WeekDaysFormSet, CourseWeekDaysFormSet
@@ -174,7 +173,7 @@ def set_access_token(request, pk):
         course.access_token = token
         course.save()
 
-        expires = token.created + timedelta(seconds=token.valid_time*60)
+        expires = token.created + timezone.timedelta(seconds=token.valid_time*60)
         url = request.build_absolute_uri(course.get_absolute_student_register_url())
 
         context = {
