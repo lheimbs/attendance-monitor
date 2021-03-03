@@ -30,7 +30,7 @@ class StudentSignUpView(CreateView):
 class StudentEdit(UpdateView):
     model = User
     form_class = StudentUpdateForm
-    template_name = 'control/account_update_form.html'
+    template_name = 'account_update_form.html'
 
     def get_initial(self):
         initial = super().get_initial()
@@ -48,7 +48,7 @@ class StudentCoursesList(ListView):
     model = Course
     ordering = ('name', )
     context_object_name = 'courses'
-    template_name = 'control/students/student.html'
+    template_name = 'students/student.html'
 
     def get_queryset(self):
         student = self.request.user.student
@@ -58,7 +58,7 @@ class StudentCoursesList(ListView):
 @method_decorator([login_required, student_required], name='dispatch')
 class StudentCourseDetail(DetailView):
     context_object_name = 'course'
-    template_name = 'control/students/course.html'
+    template_name = 'students/course.html'
 
     def get_queryset(self):
         return self.request.user.student.courses.all()
@@ -113,7 +113,7 @@ def manual_register_student_for_course(request):
         form = StudentCourseManualRegisrationForm()
 
     context = {'form': form}
-    return render(request, 'control/students/course_register.html', context)
+    return render(request, 'students/course_register.html', context)
 
 
 @login_required
@@ -125,6 +125,6 @@ def student_leave_course(request, pk):
         request.user.student.courses.remove(course)
         messages.add_message(request, messages.SUCCESS, f"You successfully left course {course.name}.")
     else:
-        messages.add_message(request, messages.WARNING, f"You are not registered to this course.")
+        messages.add_message(request, messages.WARNING, "You are not registered to this course.")
 
     return redirect('student:courses')

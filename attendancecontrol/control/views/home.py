@@ -7,4 +7,4 @@ def home(request):
         return redirect('teacher:courses')
     elif request.user.is_authenticated and request.user.is_student:
         return redirect('student:courses')
-    return render(request, 'control/home.html')
+    return render(request, 'home.html')

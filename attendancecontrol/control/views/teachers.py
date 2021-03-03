@@ -33,7 +33,7 @@ class TeacherCoursesList(ListView):
     model = Course
     ordering = ('name', )
     context_object_name = 'courses'
-    template_name = 'control/teachers/teacher.html'
+    template_name = 'teachers/teacher.html'
 
     def get_queryset(self):
         teacher = self.request.user.teacher
@@ -43,7 +43,7 @@ class TeacherCoursesList(ListView):
 @method_decorator([login_required, teacher_required], name='dispatch')
 class TeacherCourseDetail(DetailView):
     context_object_name = 'course'
-    template_name = 'control/teachers/course.html'
+    template_name = 'teachers/course.html'
 
     def get_queryset(self):
         return self.request.user.teacher.courses.all()
@@ -53,7 +53,7 @@ class TeacherCourseDetail(DetailView):
 class TeacherCreateCourse(CreateView):
     model = Course
     form_class = CourseCreateForm
-    template_name = 'control/teachers/course_add_form.html'
+    template_name = 'teachers/course_add_form.html'
 
     def get_success_url(self):
         return reverse('teacher:courses')
@@ -95,7 +95,7 @@ class TeacherEditCourse(UpdateView):
     model = Course
     # form_class = CourseCreateForm
     fields = ['name', 'min_attend_time', 'duration']
-    template_name = 'control/teachers/course_update_form.html'
+    template_name = 'teachers/course_update_form.html'
 
     def get_success_url(self):
         return reverse('teacher:courses')
@@ -156,7 +156,7 @@ class TeacherEdit(UpdateView):
     model = User
     # form_class = TeacherUpdateForm
     fields = ('email', 'first_name', 'last_name')
-    template_name = 'control/account_update_form.html'
+    template_name = 'account_update_form.html'
 
     def get_success_url(self):
         return reverse('teacher:courses')
@@ -183,6 +183,6 @@ def set_access_token(request, pk):
             'expires': expires,
             'register_url': url
         }
-        return render(request, 'control/teachers/course_registration.html', context=context)
+        return render(request, 'teachers/course_registration.html', context=context)
     else:
         return HttpResponseForbidden()
