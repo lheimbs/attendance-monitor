@@ -50,6 +50,7 @@ class StudentSignUpForm(CustomUserCreationForm):
     @transaction.atomic
     def save(self):
         user = super().save(commit=False)
+        user.username = user.email
         user.is_student = True
         user.save()
         Student.objects.create(
@@ -77,8 +78,8 @@ WeekDaysFormSet = forms.formset_factory(
 )
 
 
-CourseWeekDaysFormSet = forms.modelformset_factory(
-    WeekDay, fields=('day', 'time'), extra=1, can_delete=True
+CourseWeekDaysInlineFormSet = forms.inlineformset_factory(
+    Course, WeekDay, fields=('day', 'time'), extra=1, can_delete=True
 )
 
 
