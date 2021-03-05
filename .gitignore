@@ -17,6 +17,10 @@ venv/
 __pycache__/
 *.py[cod]
 
+# coverage.py
+htmlcov/
+.coverage
+
 # C extensions
 *.so
 
