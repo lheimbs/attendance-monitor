@@ -18,7 +18,7 @@ urlpatterns = [
         path('new/', teachers.TeacherCreateCourse.as_view(), name='add'),
         path('edit/<int:pk>', teachers.TeacherEditCourse.as_view(), name='edit'),
         path('delete/<int:pk>', teachers.TeacherCourseDelete.as_view(), name='delete'),
-        path('course/enable/<int:pk>/', teachers.set_access_token, name='enable_course'),
         path('account/edit/<int:pk>/', teachers.TeacherEdit.as_view(), name='edit_account'),
+        path('course/enable/<int:pk>/', teachers.set_access_token, name='enable_course'),
     ], 'control'), namespace='teacher')),
 ]
