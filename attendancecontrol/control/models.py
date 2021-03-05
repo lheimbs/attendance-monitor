@@ -69,7 +69,6 @@ class WeekDayChoices(models.IntegerChoices):
     SUNDAY = 6
 
 
-# Create your models here.
 class WeekDay(models.Model):
     day = models.IntegerField(
         "course day",
@@ -77,6 +76,7 @@ class WeekDay(models.Model):
         default=WeekDayChoices.MONDAY,
     )
     time = models.TimeField("starting time of course")
+    course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name='start_times', null=True)
 
     def __str__(self):
         return "day: {}, time: {}".format(
@@ -139,7 +139,7 @@ class Course(models.Model):
     uuid = models.UUIDField("course identifier", primary_key=False, unique=True, default=uuid4, editable=False)
     min_attend_time = models.IntegerField("minimum time present to count as attended in minutes", default=45)
     duration = models.IntegerField("course duration in minutes", default=90)
-    start_times = models.ManyToManyField(WeekDay)
+    # start_times = models.ManyToManyField(WeekDay)
     ongoing = models.BooleanField(default=False)
 
     access_token = models.OneToOneField(AccessToken, on_delete=models.CASCADE, null=True)
@@ -171,7 +171,8 @@ class Course(models.Model):
             return True
 
         for day in self.start_times.all():
-            if day.get_this_weeks_date() <= timezone.now() < day.get_this_weeks_date() + timezone.timedelta(minutes=self.duration):
+            max_duration_day = day.get_this_weeks_date() + timezone.timedelta(minutes=self.duration)
+            if day.get_this_weeks_date() <= timezone.now() < max_duration_day:
                 return True
         return False
 

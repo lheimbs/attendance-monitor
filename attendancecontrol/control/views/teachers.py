@@ -1,6 +1,6 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponseForbidden
+from django.forms import forms
 from django.shortcuts import redirect, get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, DetailView, DeleteView, UpdateView
@@ -8,13 +8,12 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 
 from ..decorators import teacher_required
-from ..forms import TeacherSignUpForm, CourseCreateForm, WeekDaysFormSet, CourseWeekDaysFormSet
 from ..models import User, Course, WeekDay, AccessToken
 
 
 class TeacherSignUpView(CreateView):
     model = User
-    form_class = TeacherSignUpForm
+    form_class = forms.TeacherSignUpForm
     template_name = 'registration/signup_form.html'
 
     def get_context_data(self, **kwargs):
@@ -35,8 +34,7 @@ class TeacherCoursesList(ListView):
     template_name = 'teachers/teacher.html'
 
     def get_queryset(self):
-        teacher = self.request.user.teacher
-        return teacher.courses.all()
+        return self.request.user.teacher.courses.all()
 
 
 @method_decorator([login_required, teacher_required], name='dispatch')
@@ -51,7 +49,7 @@ class TeacherCourseDetail(DetailView):
 @method_decorator([login_required, teacher_required], name='dispatch')
 class TeacherCreateCourse(CreateView):
     model = Course
-    form_class = CourseCreateForm
+    form_class = forms.CourseCreateForm
     template_name = 'teachers/course_add_form.html'
 
     def get_success_url(self):
@@ -63,13 +61,11 @@ class TeacherCreateCourse(CreateView):
         if formset.is_valid() and form.is_valid():
             self.object = form.save()
             for weekday_data in formset.cleaned_data:
-                if not weekday_data:
-                    continue
-                weekday, _ = WeekDay.objects.get_or_create(
-                    day=weekday_data['day'], time=weekday_data['time']
-                )
-                weekday.save()
-                self.object.start_times.add(weekday)
+                if weekday_data:
+                    weekday, _ = WeekDay.objects.get_or_create(
+                        day=weekday_data['day'], time=weekday_data['time']
+                    )
+                    self.object.start_times.add(weekday)
             self.request.user.teacher.courses.add(self.object)
             return redirect(self.get_success_url())
         else:
@@ -81,11 +77,11 @@ class TeacherCreateCourse(CreateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         if self.request.POST:
-            ctx['form'] = CourseCreateForm(self.request.POST)
-            ctx['week_days_formset'] = WeekDaysFormSet(self.request.POST, prefix="week_days")
+            ctx['form'] = forms.CourseCreateForm(self.request.POST)
+            ctx['week_days_formset'] = forms.WeekDaysFormSet(self.request.POST, prefix="week_days")
         else:
-            ctx['form'] = CourseCreateForm()
-            ctx['week_days_formset'] = WeekDaysFormSet(prefix="week_days")
+            ctx['form'] = forms.CourseCreateForm()
+            ctx['week_days_formset'] = forms.WeekDaysFormSet(prefix="week_days")
         return ctx
 
 
@@ -103,20 +99,8 @@ class TeacherEditCourse(UpdateView):
         ctx = self.get_context_data()
         formset = ctx['week_days_formset']
         if formset.is_valid() and form.is_valid():
-            self.object = form.save()
-            course_days = []
-            for weekday_form in formset.forms:
-                item = weekday_form.save(commit=False)
-                if item is None or item.time is None:
-                    continue
-                item.save()
-                course_days.append(item)
-                self.object.start_times.add(item)
-            self.object.start_times.clear()
-            self.object.start_times.set(course_days)
-
-            if self.object not in self.request.user.teacher.courses.all():
-                self.request.user.teacher.courses.add(self.object)
+            form.save()
+            formset.save()
             return redirect(self.get_success_url())
         else:
             return self.render_to_response(self.get_context_data(form=form))
@@ -127,21 +111,24 @@ class TeacherEditCourse(UpdateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         if self.request.POST:
-            ctx['week_days_formset'] = CourseWeekDaysFormSet(
+            ctx['week_days_formset'] = forms.CourseWeekDaysInlineFormSet(
                 self.request.POST,
                 queryset=self.object.start_times.all(),
+                instance=self.object,
                 prefix="week_days"
             )
         else:
-            ctx['week_days_formset'] = CourseWeekDaysFormSet(
-                prefix="week_days", queryset=self.object.start_times.all()
+            ctx['week_days_formset'] = forms.CourseWeekDaysInlineFormSet(
+                prefix="week_days", instance=self.object, queryset=self.object.start_times.all()
             )
         return ctx
 
 
 @method_decorator([login_required, teacher_required], name='dispatch')
 class TeacherCourseDelete(DeleteView):
+    # TODO: make this into modal (bit more elegant?)
     model = Course
+    template_name = 'course_confirm_delete.html'
 
     def get_success_url(self) -> str:
         return reverse_lazy('teacher:courses')
@@ -157,6 +144,10 @@ class TeacherEdit(UpdateView):
     fields = ('email', 'first_name', 'last_name')
     template_name = 'account_update_form.html'
 
+    # TODO: use UserPassesTestMixin instead of limiting queryset to return forbidden?
+    def get_queryset(self):
+        return User.objects.filter(pk=self.request.user.id)
+
     def get_success_url(self):
         return reverse('teacher:courses')
 
@@ -164,24 +155,20 @@ class TeacherEdit(UpdateView):
 @login_required
 @teacher_required
 def set_access_token(request, pk):
-    teachers_courses = request.user.teacher.courses.all()
-    course = get_object_or_404(Course, pk=pk)
+    course = get_object_or_404(request.user.teacher.courses.filter(pk=pk))
 
-    if course in teachers_courses:
-        token = AccessToken.objects.create(valid_time=course.duration)
-        token.save()
-        course.access_token = token
-        course.save()
+    token = AccessToken.objects.create(valid_time=course.duration)
+    token.save()
+    course.access_token = token
+    course.save()
 
-        expires = token.created + timezone.timedelta(seconds=token.valid_time*60)
-        url = request.build_absolute_uri(course.get_absolute_student_register_url())
+    expires = token.created + timezone.timedelta(seconds=token.valid_time*60)
+    url = request.build_absolute_uri(course.get_absolute_student_register_url())
 
-        context = {
-            'id': course.id,
-            'token': token.token,
-            'expires': expires,
-            'register_url': url
-        }
-        return render(request, 'teachers/course_registration.html', context=context)
-    else:
-        return HttpResponseForbidden()
+    context = {
+        'id': course.id,
+        'token': token.token,
+        'expires': expires,
+        'register_url': url
+    }
+    return render(request, 'teachers/course_registration.html', context=context)
