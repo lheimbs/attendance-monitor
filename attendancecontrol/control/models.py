@@ -23,7 +23,7 @@ class CustomUserManager(BaseUserManager):
         if not email:
             raise ValueError(_('The Email must be set'))
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user = self.model(email=email, username=email, **extra_fields)
         user.set_password(password)
         user.save()
         return user
@@ -101,10 +101,6 @@ class WeekDay(models.Model):
         ]
 
 
-def generate_token():
-    return secrets.token_urlsafe(10)
-
-
 class AccessToken(models.Model):
     token = models.CharField("Access Token", max_length=20, editable=False)
     created = models.DateTimeField("Time the token has been generated", editable=False)
@@ -124,8 +120,8 @@ class AccessToken(models.Model):
             return True
         return False
 
-    def is_token_expired(self, custom_valid_time=None):
-        expiration_time = self.created + timezone.timedelta(seconds=(custom_valid_time or self.valid_time)*60)
+    def is_token_expired(self):
+        expiration_time = self.created + timezone.timedelta(seconds=self.valid_time*60)
         if timezone.now() < expiration_time:
             return False
         return True
@@ -154,7 +150,7 @@ class Course(models.Model):
         if hasattr(self, 'access_token') and self.access_token:
             token = self.access_token.token
         else:
-            token = ""
+            token = "INVALID_TOKEN"
         return reverse('student:register_course', args=[str(self.id), token])
 
     def get_absolute_teacher_url(self):
