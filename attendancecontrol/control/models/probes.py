@@ -8,7 +8,7 @@
 from django.db import models
 
 
-class ProbeRequests(models.Model):
+class ProbeRequests(models.Model):      # pragma: no cover
     id = models.IntegerField(primary_key=True)
     time = models.DateTimeField(blank=True, null=True)
     mac = models.CharField(max_length=20, blank=True, null=True)
