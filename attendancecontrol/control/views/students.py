@@ -32,6 +32,10 @@ class StudentEdit(UpdateView):
     form_class = StudentUpdateForm
     template_name = 'account_update_form.html'
 
+    # TODO: use UserPassesTestMixin instead of limiting queryset to return forbidden?
+    def get_queryset(self):
+        return User.objects.filter(pk=self.request.user.id)
+
     def get_initial(self):
         initial = super().get_initial()
         initial['student_nr'] = self.request.user.student.student_nr
@@ -69,13 +73,14 @@ def authenticate_student_course(course, student, token):
     redirect_course = True
     is_authenticated = False
 
+    # TODO: test for success not error!
     if student.courses.exists() and course in student.courses.all():
         msg_type = messages.INFO
         msg = "You are already registered to this course."
     elif not course.access_token:
         msg = "This course is not open for registrations!"
         redirect_course = False
-    elif course.access_token.is_token_expired(course.duration):
+    elif course.access_token.is_token_expired():
         msg = "This course is not open for registrations!"
         redirect_course = False
     elif not course.access_token.is_token_valid(token):
@@ -119,12 +124,7 @@ def manual_register_student_for_course(request):
 @login_required
 @student_required
 def student_leave_course(request, pk):
-    course = get_object_or_404(Course, pk=pk)
-    students_courses = request.user.student.courses.all() if request.user.student.courses.exists() else []
-    if course in students_courses:
-        request.user.student.courses.remove(course)
-        messages.add_message(request, messages.SUCCESS, f"You successfully left course {course.name}.")
-    else:
-        messages.add_message(request, messages.WARNING, "You are not registered to this course.")
-
+    course = get_object_or_404(request.user.student.courses.filter(pk=pk))
+    request.user.student.courses.remove(course)
+    messages.add_message(request, messages.SUCCESS, f"You successfully left course {course.name}.")
     return redirect('student:courses')
