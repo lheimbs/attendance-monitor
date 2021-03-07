@@ -90,7 +90,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'probe_requests': {
+    'probes': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': BASE_DIR / 'probes.sqlite3',
     },
