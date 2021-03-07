@@ -8,7 +8,8 @@ from django.urls import reverse
 
 from ..decorators import student_required
 from ..forms import StudentSignUpForm, StudentCourseManualRegisrationForm, StudentUpdateForm
-from ..models import User, Course
+from ..models.users import User
+from ..models.courses import Course
 
 
 class StudentSignUpView(CreateView):

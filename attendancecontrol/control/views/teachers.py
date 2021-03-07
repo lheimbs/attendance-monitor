@@ -8,7 +8,8 @@ from django.utils import timezone
 
 from .. import forms
 from ..decorators import teacher_required
-from ..models import User, Course, WeekDay, AccessToken
+from ..models.users import User
+from ..models.courses import Course, WeekDay, AccessToken
 
 
 class TeacherSignUpView(CreateView):

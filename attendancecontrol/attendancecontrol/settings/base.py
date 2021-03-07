@@ -10,7 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 
 
-MODIFIED BECAUSE OF https://www.digitalocean.com/community/tutorials/how-to-harden-your-production-django-project#step-1-%E2%80%94-restructuring-django%E2%80%99s-settings
+MODIFIED BECAUSE OF:
+https://www.digitalocean.com/community/tutorials/how-to-harden-your-production-django-project#step-1-%E2%80%94-restructuring-django%E2%80%99s-settings
 """
 
 import os
@@ -83,12 +84,16 @@ WSGI_APPLICATION = 'attendancecontrol.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
+DATABASE_ROUTERS = ('control.dbrouters.ProbeRequestsRouter',)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    },
+    'probe_requests': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': BASE_DIR / 'probes.sqlite3',
+    },
 }
 
 

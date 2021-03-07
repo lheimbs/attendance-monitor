@@ -3,7 +3,8 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.db import transaction
 from macaddress.formfields import MACAddressField
 
-from .models import Student, Teacher, User, Course, WeekDay
+from .models.users import Student, Teacher, User
+from .models.courses import Course, WeekDay
 
 
 class CustomUserCreationForm(UserCreationForm):

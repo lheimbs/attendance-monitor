@@ -2,9 +2,11 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import User, Student, Teacher, Course, WeekDay, AccessToken
+from .models.users import User, Student, Teacher
+from .models.courses import Course, WeekDay, AccessToken
 
 
+@admin.register(User)
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
@@ -12,8 +14,19 @@ class CustomUserAdmin(UserAdmin):
     list_display = ['email', 'username']
 
 
-# Register your models here.
-admin.site.register(User, CustomUserAdmin)
-admin.site.register((Student, Teacher, Course, WeekDay, AccessToken))
+class WeekDayInline(admin.TabularInline):
+    model = WeekDay
+    extra = 1
 
-# TODO: weekdays <-> courses adding needs impl
+
+@admin.register(Course,)
+class CourseAdmin(admin.ModelAdmin):
+    model = Course
+    inlines = [
+        WeekDayInline,
+    ]
+    # fields = ['__all__']
+
+
+# Register your models here.
+admin.site.register((Student, Teacher, WeekDay, AccessToken))
