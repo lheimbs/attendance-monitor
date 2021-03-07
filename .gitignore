@@ -20,6 +20,9 @@ __pycache__/
 # coverage.py
 htmlcov/
 .coverage
+.coverage.*
+coverage.xml
+*.cover
 
 # C extensions
 *.so
