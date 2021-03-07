@@ -16,7 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, include
+from rest_framework import routers
 from control.views import students, teachers, control
+from probes_api import views as probes_views
+
+api_router = routers.DefaultRouter()
+api_router.register(r'probes', probes_views.ProbeRequestViewSet)
 
 urlpatterns = [
     path('', control.redirect_root),
@@ -31,4 +36,7 @@ urlpatterns = [
     path('accounts/signup/student/', students.StudentSignUpView.as_view(), name='student_signup'),
     path('accounts/signup/teacher/', teachers.TeacherSignUpView.as_view(), name='teacher_signup'),
     path('qr_code/', include('qr_code.urls', namespace="qr_code")),
+    # API URLS
+    path('api-probes/', include(api_router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

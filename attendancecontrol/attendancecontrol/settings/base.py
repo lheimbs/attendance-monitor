@@ -38,6 +38,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'control.apps.ControlConfig',
+    'probes_api.apps.ProbesApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     'fullurl',
     'crispy_forms',
     'qr_code',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -151,4 +153,9 @@ MESSAGE_TAGS = {
     messages.SUCCESS: 'alert-success',
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 100
 }
