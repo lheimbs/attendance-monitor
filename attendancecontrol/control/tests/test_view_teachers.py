@@ -215,7 +215,6 @@ class TeacherCreateCourseTest(TestCase):
         self.assertIn(added_course, teacher.courses.all())
         self.assertIn(added_weekday, added_course.start_times.all())
 
-
 class TeacherEditCourseTest(TestCase):
     def setUp(self):
         self.teacher = create_teacher()
