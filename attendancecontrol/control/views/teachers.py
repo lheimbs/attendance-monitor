@@ -1,12 +1,12 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.forms import forms
 from django.shortcuts import redirect, get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, DetailView, DeleteView, UpdateView
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 
+from .. import forms
 from ..decorators import teacher_required
 from ..models import User, Course, WeekDay, AccessToken
 
@@ -61,11 +61,10 @@ class TeacherCreateCourse(CreateView):
         if formset.is_valid() and form.is_valid():
             self.object = form.save()
             for weekday_data in formset.cleaned_data:
-                if weekday_data:
-                    weekday, _ = WeekDay.objects.get_or_create(
-                        day=weekday_data['day'], time=weekday_data['time']
-                    )
-                    self.object.start_times.add(weekday)
+                weekday = WeekDay.objects.create(
+                    day=weekday_data['day'], time=weekday_data['time']
+                )
+                self.object.start_times.add(weekday)
             self.request.user.teacher.courses.add(self.object)
             return redirect(self.get_success_url())
         else:
