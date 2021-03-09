@@ -99,7 +99,18 @@ class StudentEditTest(TestCase):
     def test_mac_in_edit_data(self):
         self.client.force_login(self.student.user)
         response = self.client.get(reverse('student:edit_account', args=(self.student.user.id,)))
-        self.assertContains(response, '11:22:33:44:55:66')  # TODO: properly format mac
+        self.assertContains(response, '11:22:33:44:55:66')  # TODO: properly format mac using netaddr
+
+    def test_student_data_actually_changed(self):
+        self.client.force_login(self.student.user)
+        data = {
+            'email': self.student.user.email,
+            'student_nr': '111111',
+            'mac': self.student.mac,
+        }
+        self.client.post(reverse('student:edit_account', args=(self.student.user.id,)), data=data)
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.student_nr, 111111)
 
 class StudentCoursesListTest(TestCase):
     def setUp(self):

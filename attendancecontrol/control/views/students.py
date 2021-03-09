@@ -46,6 +46,12 @@ class StudentEdit(UpdateView):
     def get_success_url(self):
         return reverse('student:courses')
 
+    def form_valid(self, form):
+        self.object.student.student_nr = form.cleaned_data['student_nr']
+        self.object.student.mac = form.cleaned_data['mac']
+        self.object.student.save()
+        return super().form_valid(form)
+
 
 # TODO: remodel to show timetable with registered courses
 @method_decorator([login_required, student_required], name='dispatch')
