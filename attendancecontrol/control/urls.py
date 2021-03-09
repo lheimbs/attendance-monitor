@@ -11,6 +11,7 @@ urlpatterns = [
         path('course/register', students.manual_register_student_for_course, name='register_course_manual'),
         path('course/leave/<int:pk>', students.student_leave_course, name='leave_course'),
         path('account/edit/<int:pk>/', students.StudentEdit.as_view(), name='edit_account'),
+        path('course/states/', students.get_courses_states, name='courses_status'),
     ], 'control'), namespace='student')),
     path('teacher/', include(([
         path('', teachers.TeacherCoursesList.as_view(), name='courses'),
@@ -20,5 +21,6 @@ urlpatterns = [
         path('delete/<int:pk>', teachers.TeacherCourseDelete.as_view(), name='delete'),
         path('account/edit/<int:pk>/', teachers.TeacherEdit.as_view(), name='edit_account'),
         path('course/enable/<int:pk>/', teachers.set_access_token, name='enable_course'),
+        path('course/states/', teachers.get_courses_states, name='courses_status'),
     ], 'control'), namespace='teacher')),
 ]

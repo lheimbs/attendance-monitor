@@ -1,5 +1,6 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.http.response import JsonResponse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, DetailView, DeleteView, UpdateView
@@ -32,7 +33,7 @@ class TeacherCoursesList(ListView):
     model = Course
     ordering = ('name', )
     context_object_name = 'courses'
-    template_name = 'teachers/teacher.html'
+    template_name = 'teachers/courses_list.html'
 
     def get_queryset(self):
         return self.request.user.teacher.courses.all()
@@ -172,3 +173,12 @@ def set_access_token(request, pk):
         'register_url': url
     }
     return render(request, 'teachers/course_registration.html', context=context)
+
+
+@login_required
+@teacher_required
+def get_courses_states(request):
+    courses = {}
+    for course in request.user.teacher.courses.all():
+        courses[course.id] = True if course.is_ongoing() else False
+    return JsonResponse(courses)

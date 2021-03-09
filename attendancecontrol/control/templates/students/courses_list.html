@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<span id="course-status-url" class="hidden" data-course-status-url="{% url 'student:courses_status' %}"></span>
+
+<div class="jumbotron py-2">
+    <div class="row d-flex justify-content-center">
+        <a class="col-6 btn btn-primary" href="{% url 'student:register_course_manual' %}" role="button">Manually add a new Course</a>
+    </div>
+</div>
+<div class="row">
+    <h2>Your Courses</h2>
+</div>
+<div class="row">
+{% for course in courses %}
+    <div class="col-sm-6">
+        <div class="card">
+        <div class="card-body">
+            <div class="card-title row">
+                <h5 class="h5 col">Name: {{ course.name }}</h5>
+                <div class="col-md-auto course-status-icon-container">
+                    <span class="course-status-{{ course.id }}-ongoing badge rounded-pill bg-success hidden">ongoing</span>
+                    <span class="course-status-{{ course.id }}-unknown badge rounded-pill bg-warning hidden">unknown</span>
+                    <span class="course-status-{{ course.id }}-stopped badge rounded-pill bg-danger">not ongling</span>
+                </div>
+            </div>
+            <ul class="list-group-flush">
+                <li class="list-group-item">Duration: {{ course.duration }}min</li>
+                {% for day in course.start_times.all %}
+                    <li class="list-group-item">{{ day.get_day_display }}: {{ day.time|time }}</li>
+                {% empty %}
+                    <li class="list-group-item">No times registered for this course</li>
+                {% endfor %} 
+            </ul>
+            <div class="d-flex justify-content-around gx-1">
+                <a href="{{ course.get_absolute_student_url }}" class="btn btn-primary m-1 btn-sm">Show Course</a>
+            </div>
+        </div>
+        </div>
+    </div>
+{% empty %}
+    <div class="jumbotron text-center">No courses yet...</div>
+{% endfor %}
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript">
+function get_courses_states() {
+    $.ajax({
+        url: $("#course-status-url").attr("data-course-status-url"),
+        dataType: 'json',
+        method: "GET",
+        success: function (data) {
+            for (course_id in data) {
+                if (data[course_id]) {
+                    $(".course-status-"+course_id+"-ongoing").removeClass('hidden');
+                    $(".course-status-"+course_id+"-stopped").addClass('hidden');
+                    $(".course-status-"+course_id+"-unknown").addClass('hidden');
+                }
+                else {
+                    $(".course-status-"+course_id+"-ongoing").addClass('hidden');
+                    $(".course-status-"+course_id+"-stopped").removeClass('hidden');
+                    $(".course-status-"+course_id+"-unknown").addClass('hidden');
+                }
+            }
+        },
+        error: function() {
+            $('span[class^="course-status-"][class*="-ongoing"]').addClass('hidden');
+            $('span[class^="course-status-"][class*="-stopped"]').addClass('hidden');
+            $('span[class^="course-status-"][class*="-unknown"]').removeClass('hidden');
+        }
+    });
+}
+get_courses_states();
+setInterval(get_courses_states, 30000); // 30 seconds
+</script>
+{% endblock %}

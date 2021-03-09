@@ -1,0 +1,9 @@
+.hidden { display: none !important; }
+.visible { display: initial; }
+
+.dot {
+    height: 25px;
+    width: 25px;
+    border-radius: 50%;
+    display: inline-block;
+}

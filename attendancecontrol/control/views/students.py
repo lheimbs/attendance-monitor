@@ -1,6 +1,7 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http.response import JsonResponse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, DetailView, UpdateView
@@ -53,7 +54,7 @@ class StudentCoursesList(ListView):
     model = Course
     ordering = ('name', )
     context_object_name = 'courses'
-    template_name = 'students/student.html'
+    template_name = 'students/courses_list.html'
 
     def get_queryset(self):
         student = self.request.user.student
@@ -129,3 +130,12 @@ def student_leave_course(request, pk):
     request.user.student.courses.remove(course)
     messages.add_message(request, messages.SUCCESS, f"You successfully left course {course.name}.")
     return redirect('student:courses')
+
+
+@login_required
+@student_required
+def get_courses_states(request):
+    courses = {}
+    for course in request.user.student.courses.all():
+        courses[course.id] = True if course.is_ongoing() else False
+    return JsonResponse(courses)
