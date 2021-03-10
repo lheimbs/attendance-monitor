@@ -63,8 +63,10 @@ class StudentCoursesList(ListView):
     template_name = 'students/courses_list.html'
 
     def get_queryset(self):
-        student = self.request.user.student
-        return student.courses.all()
+        """Sort courses first by ongoing true then false and then ascending by id"""
+        courses = self.request.user.student.courses.all()
+        # not is_ongoing because: True > False
+        return sorted(list(courses), key=lambda c: (not c.is_ongoing(), c.id))
 
 
 @method_decorator([login_required, student_required], name='dispatch')

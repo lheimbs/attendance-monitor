@@ -69,5 +69,9 @@ class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     courses = models.ManyToManyField('Course')
 
+    @property
+    def get_full_name(self):
+        return f"{self.user.first_name} {self.user.last_name}"
+
     def __str__(self):
         return str(self.user)

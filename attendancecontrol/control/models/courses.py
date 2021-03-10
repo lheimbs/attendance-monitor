@@ -7,13 +7,13 @@ from django.urls import reverse
 
 
 class WeekDayChoices(models.IntegerChoices):
-    MONDAY = 0
-    TUESDAY = 1
-    WEDNESDAY = 2
-    THURSDAY = 3
-    FRIDAY = 4
-    SATURDAY = 5
-    SUNDAY = 6
+    MONDAY = 0, 'MON'
+    TUESDAY = 1, 'TUE'
+    WEDNESDAY = 2, 'WED'
+    THURSDAY = 3, 'THU'
+    FRIDAY = 4, 'FRI'
+    SATURDAY = 5, 'SAT'
+    SUNDAY = 6, 'SUN'
 
 
 class WeekDay(models.Model):
@@ -31,12 +31,12 @@ class WeekDay(models.Model):
         )
 
     def get_this_weeks_date(self):
-        now = timezone.now().replace(
+        now = timezone.localtime(timezone.localtime().replace(
             hour=self.time.hour,
             minute=self.time.minute,
             second=self.time.second,
             microsecond=0
-        )
+        ), timezone.utc)
         return now + timezone.timedelta(days=-now.weekday()+self.day)
 
     class Meta:
@@ -118,6 +118,23 @@ class Course(models.Model):
             if day.get_this_weeks_date() <= timezone.now() < max_duration_day:
                 return True
         return False
+
+    def get_next_date(self):
+        """Get the next date the course is taking place.
+        If there are no dates for this course, return None.
+        """
+        next_dates = []
+        for weekday in self.start_times.all():
+            weekday_endtime = weekday.get_this_weeks_date() + timezone.timedelta(minutes=self.duration)
+            if weekday_endtime > timezone.now():
+                next_dates.append(weekday_endtime)
+        if next_dates:
+            return min(next_dates) - timezone.timedelta(minutes=self.duration)
+        return None
+
+    @property
+    def sorted_start_times_set(self):
+        return sorted(list(self.start_times.all()), key=lambda wd: wd.get_this_weeks_date())
 
     def __str__(self):
         return (

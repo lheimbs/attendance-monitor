@@ -3,35 +3,35 @@
 {% block content %}
 <h2>Your Courses</h2>
 
-<span id="course-status-url" class="hidden" data-course-status-url="{% url 'teacher:courses_status' %}"></span>
+<span id="course-status-url" class="visually-hidden" data-course-status-url="{% url 'teacher:courses_status' %}"></span>
 
-<div class="row">
+<div class="row gy-2">
 {% for course in courses %}
     <div class="col-sm-6">
-        <div class="card">
-        <div class="card-body">
-            <div class="card-title row">
-                <h5 class="h5 col">Name: {{ course.name }}</h5>
-                <div class="col-md-auto course-status-icon-container">
-                    <span class="course-status-{{ course.id }}-ongoing badge rounded-pill bg-success hidden">ongoing</span>
-                    <span class="course-status-{{ course.id }}-unknown badge rounded-pill bg-warning hidden">unknown</span>
-                    <span class="course-status-{{ course.id }}-stopped badge rounded-pill bg-danger">not ongling</span>
+        <div class="card h-100 d-flex flex-column justify-content-between">
+        <div>
+            <div class="card-body">
+                <div class="card-title row">
+                    <h5 class="h5 col">Name: {{ course.name }}</h5>
+                    {% include 'snippets/course_status_indicator.html' with course=course %}
                 </div>
             </div>
-            <ul class="list-group-flush">
+            <ul class="list-group list-group-flush">
                 <li class="list-group-item"># Students: {{ course.student_set.count }}</li>
                 <li class="list-group-item">Duration: {{ course.duration }}min</li>
-                {% for day in course.start_times.all %}
-                    <li class="list-group-item">{{ day.get_day_display }}: {{ day.time|time }}</li>
+                <li class="list-group-item d-flex text-center flex-wrap">
+                {% for day in course.sorted_start_times_set %}
+                    {% include 'snippets/weekday_in_row_as_card.html' with day=day %}
                 {% empty %}
-                    <li class="list-group-item">No times registered for this course</li>
-                {% endfor %} 
+                    No times registered for this course...
+                {% endfor %}
+                </li>
             </ul>
-            <div class="d-flex justify-content-around gx-1 flex-wrap">
-                <a href="{{ course.get_absolute_teacher_url }}" class="btn btn-primary m-1 btn-sm">Show Course</a>
-                <a href="{{ course.get_absolute_teacher_edit_url }}" class="btn btn-primary m-1 btn-sm">Edit Course</a>
-                <a href="{{ course.get_absolute_teacher_delete_url }}" class="btn btn-primary m-1 btn-sm">Delete Course</a>
-            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-around gx-1 flex-wrap">
+            <a href="{{ course.get_absolute_teacher_url }}" class="btn btn-primary m-1 btn-sm">Show Course</a>
+            <a href="{{ course.get_absolute_teacher_edit_url }}" class="btn btn-primary m-1 btn-sm">Edit Course</a>
+            <a href="{{ course.get_absolute_teacher_delete_url }}" class="btn btn-primary m-1 btn-sm">Delete Course</a>
         </div>
         </div>
     </div>
@@ -53,25 +53,24 @@ function get_courses_states() {
         success: function (data) {
             for (course_id in data) {
                 if (data[course_id]) {
-                    $(".course-status-"+course_id+"-ongoing").removeClass('hidden');
-                    $(".course-status-"+course_id+"-stopped").addClass('hidden');
-                    $(".course-status-"+course_id+"-unknown").addClass('hidden');
+                    $(".course-status-"+course_id+"-ongoing").removeClass('visually-hidden');
+                    $(".course-status-"+course_id+"-stopped").addClass('visually-hidden');
+                    $(".course-status-"+course_id+"-unknown").addClass('visually-hidden');
                 }
                 else {
-                    $(".course-status-"+course_id+"-ongoing").addClass('hidden');
-                    $(".course-status-"+course_id+"-stopped").removeClass('hidden');
-                    $(".course-status-"+course_id+"-unknown").addClass('hidden');
+                    $(".course-status-"+course_id+"-ongoing").addClass('visually-hidden');
+                    $(".course-status-"+course_id+"-stopped").removeClass('visually-hidden');
+                    $(".course-status-"+course_id+"-unknown").addClass('visually-hidden');
                 }
             }
         },
         error: function() {
-            $('span[class^="course-status-"][class*="-ongoing"]').addClass('hidden');
-            $('span[class^="course-status-"][class*="-stopped"]').addClass('hidden');
-            $('span[class^="course-status-"][class*="-unknown"]').removeClass('hidden');
+            $('span[class^="course-status-"][class*="-ongoing"]').addClass('visually-hidden');
+            $('span[class^="course-status-"][class*="-stopped"]').addClass('visually-hidden');
+            $('span[class^="course-status-"][class*="-unknown"]').removeClass('visually-hidden');
         }
     });
 }
-get_courses_states();
-setInterval(get_courses_states, 30000); // 30 seconds
+setInterval(get_courses_states, 60000); // 1 minute
 </script>
 {% endblock %}

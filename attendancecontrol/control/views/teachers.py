@@ -9,8 +9,8 @@ from django.utils import timezone
 
 from .. import forms
 from ..decorators import teacher_required
-from ..models.users import User
-from ..models.courses import Course, WeekDay, AccessToken
+from ..models import User, Course, WeekDay, AccessToken
+from ..utils import get_users_courses_ongoing_states
 
 
 class TeacherSignUpView(CreateView):
@@ -36,7 +36,10 @@ class TeacherCoursesList(ListView):
     template_name = 'teachers/courses_list.html'
 
     def get_queryset(self):
-        return self.request.user.teacher.courses.all()
+        """Sort courses first by ongoing true then false and then ascending by id"""
+        courses = self.request.user.teacher.courses.all()
+        # not is_ongoing because: True > False
+        return sorted(list(courses), key=lambda c: (not c.is_ongoing(), c.id))
 
 
 @method_decorator([login_required, teacher_required], name='dispatch')
@@ -63,10 +66,11 @@ class TeacherCreateCourse(CreateView):
         if formset.is_valid() and form.is_valid():
             self.object = form.save()
             for weekday_data in formset.cleaned_data:
-                weekday = WeekDay.objects.create(
-                    day=weekday_data['day'], time=weekday_data['time']
-                )
-                self.object.start_times.add(weekday)
+                if weekday_data:
+                    weekday = WeekDay.objects.create(
+                        day=weekday_data['day'], time=weekday_data['time']
+                    )
+                    self.object.start_times.add(weekday)
             self.request.user.teacher.courses.add(self.object)
             return redirect(self.get_success_url())
         else:
@@ -178,7 +182,5 @@ def set_access_token(request, pk):
 @login_required
 @teacher_required
 def get_courses_states(request):
-    courses = {}
-    for course in request.user.teacher.courses.all():
-        courses[course.id] = True if course.is_ongoing() else False
+    courses = get_users_courses_ongoing_states(request.user.teacher)
     return JsonResponse(courses)
