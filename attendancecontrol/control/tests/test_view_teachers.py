@@ -1,4 +1,5 @@
 import itertools
+from unittest import mock
 
 from django.test import TestCase
 from django.test.client import RequestFactory
@@ -11,6 +12,10 @@ from ..views import teachers as teachers_view
 USER_EMAIL = 'user@test.com'
 TEACHER_EMAIL = 'teacher@test.com'
 STUDENT_EMAIL = 'student@test.com'
+NOW_FOR_TESTING = timezone.make_aware(
+    timezone.datetime(2021, 3, 1, 10, 0, 0, 0),  # 1.3.2021 was a monday
+    timezone.utc
+)
 
 def create_teacher(custom_email=""):
     teacher, _ = models.Teacher.objects.get_or_create(user=models.User.objects.create(
@@ -36,7 +41,7 @@ def create_weekdays(num=5):
     return weekdays
 
 
-def create_course(num_weekdays):
+def create_course(num_weekdays=0):
     course = models.Course.objects.create(name='test_course_edit')
     weekdays = create_weekdays(num_weekdays)
     for weekday in weekdays:
@@ -214,6 +219,22 @@ class TeacherCreateCourseTest(TestCase):
         self.assertEqual(added_weekday.time, timezone.now().replace(hour=11, minute=0, second=0, microsecond=0).time())
         self.assertIn(added_course, teacher.courses.all())
         self.assertIn(added_weekday, added_course.start_times.all())
+
+    def test_invalid_time_in_weekday_gets_ignored(self):
+        teacher = models.Teacher.objects.get(user__email=TEACHER_EMAIL)
+        self.client.force_login(teacher.user)
+
+        request = self.factory.post(reverse('teacher:add'), data={
+            'name': 'testcourse_3', 'min_attend_time': '10', 'duration': '20',
+            'week_days-TOTAL_FORMS': '1', 'week_days-INITIAL_FORMS': '0',
+            'week_days-0-day': '0', 'week_days-0-time': '',
+        })
+        request.user = teacher.user
+        teachers_view.TeacherCreateCourse.as_view()(request)
+
+        added_course = models.Course.objects.last()
+        self.assertEqual(added_course.name, 'testcourse_3')
+        self.assertQuerysetEqual(added_course.start_times.all(), [])
 
 class TeacherEditCourseTest(TestCase):
     def setUp(self):
@@ -413,3 +434,38 @@ class SettingAccessTokenTest(TestCase):
         self.client.force_login(self.teacher.user)
         response = self.client.get(reverse('teacher:enable_course', args=(course.id,)))
         self.assertEqual(response.status_code, 404)
+
+
+class GetCoursesStatesTest(TestCase):
+    def setUp(self):
+        self.teacher = create_teacher()
+        self.course = create_course(0)
+
+    def test_empty_dict_when_teacher_has_no_courses(self):
+        self.client.force_login(self.teacher.user)
+        response = self.client.get(reverse('teacher:courses_status'))
+        self.assertJSONEqual(str(response.content, encoding='utf8'), {})
+
+    @mock.patch('django.utils.timezone.now', return_value=NOW_FOR_TESTING)
+    def test_course_not_ongoing(self, *args):
+        self.course.start_times.create(
+            day=models.WeekDayChoices.FRIDAY,
+            time=timezone.now().replace(hour=9, minute=0, second=0, microsecond=0).time()
+        )
+        self.teacher.courses.add(self.course)
+        self.teacher.refresh_from_db()
+        self.client.force_login(self.teacher.user)
+        response = self.client.get(reverse('teacher:courses_status'))
+        self.assertJSONEqual(str(response.content, encoding='utf8'), {str(self.course.id): False})
+
+    @mock.patch('django.utils.timezone.now', return_value=NOW_FOR_TESTING)
+    def test_course_ongoing(self, *args):
+        self.course.start_times.create(
+            day=models.WeekDayChoices.MONDAY,
+            time=timezone.now().time()
+        )
+        self.teacher.courses.add(self.course)
+        self.teacher.refresh_from_db()
+        self.client.force_login(self.teacher.user)
+        response = self.client.get(reverse('teacher:courses_status'))
+        self.assertJSONEqual(str(response.content, encoding='utf8'), {str(self.course.id): True})

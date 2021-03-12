@@ -82,7 +82,6 @@ class Course(models.Model):
     uuid = models.UUIDField("course identifier", primary_key=False, unique=True, default=uuid4, editable=False)
     min_attend_time = models.IntegerField("minimum time present to count as attended in minutes", default=45)
     duration = models.IntegerField("course duration in minutes", default=90)
-    # start_times = models.ManyToManyField(WeekDay)
     ongoing = models.BooleanField(default=False)
 
     access_token = models.OneToOneField(AccessToken, on_delete=models.CASCADE, null=True)

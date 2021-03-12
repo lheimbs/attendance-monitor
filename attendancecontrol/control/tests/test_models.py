@@ -1,6 +1,6 @@
 import datetime
+from unittest import mock
 
-import mock
 from django.test import TestCase
 from django.utils import timezone
 from django.urls import reverse
@@ -14,11 +14,11 @@ from ..models import courses as course_models
 # Make now() a constant
 NOW_FOR_TESTING = timezone.make_aware(
     timezone.datetime(2021, 3, 1, 10, 0, 0, 0),  # 1.3.2021 was a monday
-    timezone.utc
+    timezone.get_current_timezone()
 )
 TIME_FOR_TESTING = timezone.make_aware(
     timezone.datetime(2021, 3, 1, 9, 55, 0, 0),  # 1.3.2021 was a monday
-    timezone.utc
+    timezone.get_current_timezone()
 ).time()
 
 
@@ -127,10 +127,10 @@ class AccessTokenModelTests(TestCase):
 @mock.patch('django.utils.timezone.now', side_effect=mocked_now)
 class CourseModelTests(TestCase):
     def setUp(self, *args):
-        course_models.Course.objects.create(
+        self.course = course_models.Course.objects.create(
             name="Testcourse_models.Course", duration=10, min_attend_time=5, ongoing=True
         )
-        course_models.WeekDay.objects.create(
+        self.wd = course_models.WeekDay.objects.create(
             day=course_models.WeekDayChoices.MONDAY, time=TIME_FOR_TESTING
         )
 
@@ -207,6 +207,24 @@ class CourseModelTests(TestCase):
             reverse('student:register_course', args=[str(course.id), token.token])
         )
 
+    def test_course_get_next_date_correct_date_with_one_date(self, *args):
+        self.course.start_times.clear()
+        self.course.start_times.add(self.wd)
+        next_date = self.course.get_next_date()
+        self.assertEqual(next_date, self.wd.get_this_weeks_date())
+
+    def test_course_get_next_date_none_for_this_week_alreay_happened(self, *args):
+        self.course.start_times.clear()
+        wd_2 = course_models.WeekDay.objects.create(day=course_models.WeekDayChoices.MONDAY, time=TIME_FOR_TESTING.replace(hour=2))
+        self.course.start_times.add(wd_2)
+        next_date = self.course.get_next_date()
+        self.assertEqual(next_date, None)
+
+    def test_course_get_sorted_start_times_set(self, *args):
+        self.course.start_times.clear()
+        wd_2 = course_models.WeekDay.objects.create(day=course_models.WeekDayChoices.MONDAY, time=TIME_FOR_TESTING.replace(hour=2))
+        self.course.start_times.add(self.wd, wd_2)
+        self.assertListEqual(self.course.sorted_start_times_set, [wd_2, self.wd])
 
 class StudentModelTests(TestCase):
     def test_student_model_str_function(self):
@@ -215,6 +233,11 @@ class StudentModelTests(TestCase):
 
 
 class TeacherModelTests(TestCase):
+    def setUp(self):
+        self.teacher = create_teacher()
+
     def test_teacher_model_str_function(self):
-        teacher = create_teacher()
-        self.assertEqual(str(teacher), f"{teacher.user}")
+        self.assertEqual(str(self.teacher), f"{self.teacher.user}")
+
+    def test_teacher_full_name_property(self):
+        self.assertEqual(self.teacher.get_full_name, f"{self.teacher.user.first_name} {self.teacher.user.last_name}")

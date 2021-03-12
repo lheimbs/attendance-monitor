@@ -1,5 +1,5 @@
 import itertools
-import mock
+from unittest import mock
 
 from django.test import TestCase
 from django.utils import timezone
@@ -308,7 +308,6 @@ class TestStudentLeaveCourse(TestCase):
         self.student = create_student()
         self.student.courses.clear()
         self.course = create_course(0)
-        # self.student.courses.add(self.course)
 
     def test_non_existent_course(self):
         self.client.force_login(self.student.user)
@@ -326,3 +325,38 @@ class TestStudentLeaveCourse(TestCase):
         self.client.get(reverse('student:leave_course', args=(self.course.id,)))
         student = models.Student.objects.get(pk=self.student.user.id)
         self.assertNotIn(self.course, student.courses.all())
+
+
+class GetCoursesStatesTest(TestCase):
+    def setUp(self):
+        self.student = create_student()
+        self.course = create_course(0)
+
+    def test_empty_dict_when_student_has_no_courses(self):
+        self.client.force_login(self.student.user)
+        response = self.client.get(reverse('student:courses_status'))
+        self.assertJSONEqual(str(response.content, encoding='utf8'), {})
+
+    @mock.patch('django.utils.timezone.now', return_value=NOW_FOR_TESTING)
+    def test_course_not_ongoing(self, *args):
+        self.course.start_times.create(
+            day=models.WeekDayChoices.FRIDAY,
+            time=timezone.now().replace(hour=9, minute=0, second=0, microsecond=0).time()
+        )
+        self.student.courses.add(self.course)
+        self.student.refresh_from_db()
+        self.client.force_login(self.student.user)
+        response = self.client.get(reverse('student:courses_status'))
+        self.assertJSONEqual(str(response.content, encoding='utf8'), {str(self.course.id): False})
+
+    @mock.patch('django.utils.timezone.now', return_value=NOW_FOR_TESTING)
+    def test_course_ongoing(self, *args):
+        self.course.start_times.create(
+            day=models.WeekDayChoices.MONDAY,
+            time=timezone.now().time()
+        )
+        self.student.courses.add(self.course)
+        self.student.refresh_from_db()
+        self.client.force_login(self.student.user)
+        response = self.client.get(reverse('student:courses_status'))
+        self.assertJSONEqual(str(response.content, encoding='utf8'), {str(self.course.id): True})
