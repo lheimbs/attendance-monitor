@@ -21,7 +21,7 @@ from control.views import students, teachers, control
 urlpatterns = [
     path('', control.redirect_root),
     path('control/', include('control.urls')),
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls, name='admin'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/password/', auth_views.PasswordChangeView.as_view(
         template_name='registration/change_password.html',
