@@ -21,6 +21,7 @@ class WeekDayInline(admin.TabularInline):
 
 @admin.register(Course,)
 class CourseAdmin(admin.ModelAdmin):
+    list_display = ('name', 'duration', 'min_attend_time', 'teacher')
     model = Course
     inlines = [
         WeekDayInline,
@@ -28,5 +29,18 @@ class CourseAdmin(admin.ModelAdmin):
     # fields = ['__all__']
 
 
+@admin.register(Teacher)
+class TeacherAdmin(admin.ModelAdmin):
+    model = Teacher
+    list_display = ['user', 'courses_display']
+    # fields = ('user', 'courses', 'additinal_courses')
+
+    def courses_display(self, obj):
+        return ", ".join([
+            course.name for course in obj.courses.all()
+        ])
+    courses_display.short_description = "Courses"
+
+
 # Register your models here.
-admin.site.register((Student, Teacher, WeekDay, AccessToken))
+admin.site.register((Student, WeekDay, AccessToken))
