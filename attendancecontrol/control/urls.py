@@ -16,6 +16,7 @@ urlpatterns = [
     path('teacher/', include(([
         path('', teachers.TeacherCoursesList.as_view(), name='courses'),
         path('course/<int:pk>', teachers.TeacherCourseDetail.as_view(), name='detail'),
+        path('additional_course/<int:pk>', teachers.TeacherAdditionalCourseDetail.as_view(), name='additional_detail'),
         path('new/', teachers.TeacherCreateCourse.as_view(), name='add'),
         path('edit/<int:pk>', teachers.TeacherEditCourse.as_view(), name='edit'),
         path('delete/<int:pk>', teachers.TeacherCourseDelete.as_view(), name='delete'),

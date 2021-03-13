@@ -69,6 +69,17 @@ class WeekDayCreateForm(forms.ModelForm):
 
 
 class CourseCreateForm(forms.ModelForm):
+    additional_teachers = forms.ModelMultipleChoiceField(
+        queryset=Teacher.objects.none(),
+        required=False,
+        help_text="Colleagues that can enable registration and oversee the students attendance"
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        self.fields['additional_teachers'].queryset = Teacher.objects.exclude(user__email=self.user.email)
+
     class Meta:
         model = Course
         fields = ['name', 'min_attend_time', 'duration']

@@ -67,7 +67,7 @@ class Student(models.Model):
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    courses = models.ManyToManyField('Course')
+    additional_courses = models.ManyToManyField('Course', related_name='additional_teachers')
 
     @property
     def get_full_name(self):

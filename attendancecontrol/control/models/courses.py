@@ -83,8 +83,9 @@ class Course(models.Model):
     min_attend_time = models.IntegerField("minimum time present to count as attended in minutes", default=45)
     duration = models.IntegerField("course duration in minutes", default=90)
     ongoing = models.BooleanField(default=False)
+    teacher = models.ForeignKey('Teacher', on_delete=models.CASCADE, related_name='courses', null=True)
 
-    access_token = models.OneToOneField(AccessToken, on_delete=models.CASCADE, null=True)
+    access_token = models.OneToOneField(AccessToken, on_delete=models.CASCADE, null=True, blank=True)
 
     def get_absolute_student_url(self):
         return reverse('student:detail', args=[str(self.id)])
@@ -101,6 +102,9 @@ class Course(models.Model):
 
     def get_absolute_teacher_url(self):
         return reverse('teacher:detail', args=[str(self.id)])
+
+    def get_absolute_additional_teacher_url(self):
+        return reverse('teacher:additional_detail', args=[str(self.id)])
 
     def get_absolute_teacher_delete_url(self):
         return reverse('teacher:delete', args=[str(self.id)])

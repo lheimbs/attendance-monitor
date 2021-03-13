@@ -32,7 +32,7 @@ class StudentSignUpView(CreateView):
 class StudentEdit(UpdateView):
     model = User
     form_class = StudentUpdateForm
-    template_name = 'account_update_form.html'
+    template_name = 'control/account_update_form.html'
 
     # TODO: use UserPassesTestMixin instead of limiting queryset to return forbidden?
     def get_queryset(self):
@@ -60,7 +60,7 @@ class StudentCoursesList(ListView):
     model = Course
     ordering = ('name', )
     context_object_name = 'courses'
-    template_name = 'students/courses_list.html'
+    template_name = 'control/students/courses_list.html'
 
     def get_queryset(self):
         """Sort courses first by ongoing true then false and then ascending by id"""
@@ -72,7 +72,7 @@ class StudentCoursesList(ListView):
 @method_decorator([login_required, student_required], name='dispatch')
 class StudentCourseDetail(DetailView):
     context_object_name = 'course'
-    template_name = 'students/course.html'
+    template_name = 'control/students/course.html'
 
     def get_queryset(self):
         return self.request.user.student.courses.all()
@@ -128,7 +128,7 @@ def manual_register_student_for_course(request):
         form = StudentCourseManualRegisrationForm()
 
     context = {'form': form}
-    return render(request, 'students/course_register.html', context)
+    return render(request, 'control/students/course_register.html', context)
 
 
 @login_required
