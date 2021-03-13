@@ -130,6 +130,29 @@ class TeacherCourseDetailTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+class TeacherAdditionalCourseDetailTest(TestCase):
+    def setUp(self):
+        self.teacher = create_teacher()
+
+    def test_show_course_that_belongs_to_teacher(self):
+        """Show a course's details that is in the teachers additional courses relationship."""
+        course = models.Course.objects.create(name="testcourse")
+        self.teacher.additional_courses.add(course)
+
+        self.client.force_login(self.teacher.user)
+        response = self.client.get(reverse('teacher:additional_detail', args=(course.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, course.name)
+
+    def test_error_for_course_that_does_not_belong_to_teacher(self):
+        """Show an error for a course that is not in the teachers additional courses field."""
+        course = models.Course.objects.create(name="testcourse")
+
+        self.client.force_login(self.teacher.user)
+        response = self.client.get(reverse('teacher:detail', args=(course.id,)))
+        self.assertEqual(response.status_code, 404)
+
+
 class TeacherCreateCourseTest(TestCase):
     def setUp(self):
         create_teacher()
@@ -219,6 +242,23 @@ class TeacherCreateCourseTest(TestCase):
         self.assertEqual(added_weekday.time, timezone.now().replace(hour=11, minute=0, second=0, microsecond=0).time())
         self.assertIn(added_course, teacher.courses.all())
         self.assertIn(added_weekday, added_course.start_times.all())
+
+    def test_form_valid_with_additional_teacher(self):
+        """Test that form_valid creates course and saves it to the teacher's courses with one weekday"""
+        teacher = models.Teacher.objects.get(user__email=TEACHER_EMAIL)
+        additional_teacher = create_teacher("additional@test.de")
+        self.client.force_login(teacher.user)
+
+        request = self.factory.post(reverse('teacher:add'), data={
+            'name': 'testcourse_2', 'min_attend_time': '10', 'duration': '20',
+            'week_days-TOTAL_FORMS': '0', 'week_days-INITIAL_FORMS': '0',
+            'additional_teachers': str(additional_teacher.user.id),
+        })
+        request.user = teacher.user
+
+        teachers_view.TeacherCreateCourse.as_view()(request)
+        added_course = models.Course.objects.last()
+        self.assertIn(additional_teacher, added_course.additional_teachers.all())
 
     def test_invalid_time_in_weekday_gets_ignored(self):
         teacher = models.Teacher.objects.get(user__email=TEACHER_EMAIL)
@@ -369,6 +409,22 @@ class TeacherEditCourseTest(TestCase):
             course.start_times.first().time,
             timezone.now().replace(hour=11, minute=11, second=0, microsecond=0).time()
         )
+
+    def test_form_valid_with_additional_teacher(self):
+        """Test that form_valid creates course and saves it to the teacher's courses with one weekday"""
+        additional_teacher = create_teacher("additional@test.de")
+        self.client.force_login(self.teacher.user)
+
+        request = self.factory.post(reverse('teacher:add'), data={
+            'name': 'testcourse_2', 'min_attend_time': '10', 'duration': '20',
+            'week_days-TOTAL_FORMS': '0', 'week_days-INITIAL_FORMS': '0',
+            'additional_teachers': str(additional_teacher.user.id),
+        })
+        request.user = self.teacher.user
+
+        teachers_view.TeacherEditCourse.as_view()(request, pk=self.course.id)
+        added_course = models.Course.objects.last()
+        self.assertIn(additional_teacher, added_course.additional_teachers.all())
 
 
 class TeacherCourseDeleteTest(TestCase):

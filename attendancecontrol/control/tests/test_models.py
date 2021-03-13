@@ -207,6 +207,15 @@ class CourseModelTests(TestCase):
             reverse('student:register_course', args=[str(course.id), token.token])
         )
 
+    def test_course_get_absolute_additional_teacher_url(self, *args):
+        course = course_models.Course.objects.create(name='testcourseforurl')
+        teacher = create_teacher()
+        teacher.additional_courses.add(course)
+        self.assertEqual(
+            course.get_absolute_additional_teacher_url(),
+            reverse('teacher:additional_detail', args=[str(course.id)])
+        )
+
     def test_course_get_next_date_correct_date_with_one_date(self, *args):
         self.course.start_times.clear()
         self.course.start_times.add(self.wd)
@@ -215,14 +224,20 @@ class CourseModelTests(TestCase):
 
     def test_course_get_next_date_none_for_this_week_alreay_happened(self, *args):
         self.course.start_times.clear()
-        wd_2 = course_models.WeekDay.objects.create(day=course_models.WeekDayChoices.MONDAY, time=TIME_FOR_TESTING.replace(hour=2))
+        wd_2 = course_models.WeekDay.objects.create(
+            day=course_models.WeekDayChoices.MONDAY,
+            time=TIME_FOR_TESTING.replace(hour=2)
+        )
         self.course.start_times.add(wd_2)
         next_date = self.course.get_next_date()
         self.assertEqual(next_date, None)
 
     def test_course_get_sorted_start_times_set(self, *args):
         self.course.start_times.clear()
-        wd_2 = course_models.WeekDay.objects.create(day=course_models.WeekDayChoices.MONDAY, time=TIME_FOR_TESTING.replace(hour=2))
+        wd_2 = course_models.WeekDay.objects.create(
+            day=course_models.WeekDayChoices.MONDAY,
+            time=TIME_FOR_TESTING.replace(hour=2)
+        )
         self.course.start_times.add(self.wd, wd_2)
         self.assertListEqual(self.course.sorted_start_times_set, [wd_2, self.wd])
 
