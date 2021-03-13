@@ -1,5 +1,0 @@
-<div class="col-md-auto course-status-icon-container">
-    <span class="course-status-{{ course.id }}-ongoing badge rounded-pill bg-success {{ course.is_ongoing|yesno:',visually-hidden,visually-hidden' }}">ongoing</span>
-    <span class="course-status-{{ course.id }}-unknown badge rounded-pill bg-warning visually-hidden">unknown</span>
-    <span class="course-status-{{ course.id }}-stopped badge rounded-pill bg-danger {{ course.is_ongoing|yesno:'visually-hidden,,visually-hidden' }}">not ongoing</span>
-</div>

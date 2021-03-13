@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<ul class="nav nav-tabs" id="coursesTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab" aria-controls="courses" aria-selected="true">Your courses</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#additional-courses" type="button" role="tab" aria-controls="additional-courses" aria-selected="false">Courses you are entered as a substitute</button>
+  </li>
+</ul>
+
+<div class="tab-content" id="coursesTabContent">
+    <div class="tab-pane fade show active" id="courses" role="tabpanel" aria-labelledby="courses-tab">
+        <div class="row gy-2">
+        {% for course in courses %}
+            {% include 'control/snippets/course_card.html' with course=course user=user substitute=False %}
+        {% empty %}
+            <div class="jumbotron">
+            No courses yet...
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+    <div class="tab-pane fade" id="additional-courses" role="tabpanel" aria-labelledby="additional-courses-tab">
+        <div class="row gy-2">
+        {% for course in additional_courses %}
+            {% include 'control/snippets/course_card.html' with course=course user=user substitute=True %}
+        {% empty %}
+            <div class="jumbotron">
+            No substitute courses...
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div id="course-status-url" class="row gy-2" data-course-status-url="{% url 'teacher:courses_status' %}"></div>
+</div>
+{# <h2>Courses you are entered as a substitute</h2> #}
+
+{% endblock %}
+
+{% block javascript %}
+{% load static %}
+<script src="{% static 'control/course_status.js' %}" type="text/javascript"></script>
+{% endblock %}

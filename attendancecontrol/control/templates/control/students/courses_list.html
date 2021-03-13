@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<span id="course-status-url" class="visually-hidden" data-course-status-url="{% url 'student:courses_status' %}"></span>
+
+<div class="jumbotron py-2">
+    <div class="row d-flex justify-content-center">
+        <a class="col-6 btn btn-primary" href="{% url 'student:register_course_manual' %}" role="button">Manually add a new Course</a>
+    </div>
+</div>
+<div class="row">
+    <h2>Your Courses</h2>
+</div>
+<div class="row gy-2">
+{% for course in courses %}
+    {% include 'control/snippets/course_card.html' with course=course user=user %}
+{% empty %}
+    <div class="jumbotron text-center">No courses yet...</div>
+{% endfor %}
+</div>
+{% endblock %}
+
+{% block javascript %}
+{% load static %}
+<script src="{% static 'control/course_status.js' %}" type="text/javascript"></script>
+{% endblock %}

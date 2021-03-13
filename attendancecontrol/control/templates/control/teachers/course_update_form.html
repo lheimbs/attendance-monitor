@@ -12,8 +12,8 @@
     <hr/>
     <div class="weekdays-container">
     {{ week_days_formset.management_form|crispy }}
-    <div style="display: none;" class="empty-weekday-form">
-        <div class="row weekday_form">
+    <div class="empty-weekday-form visually-hidden">
+        <div class="row weekday_form_update">
             {{ week_days_formset.empty_form.id }}
             
             <div class="col-4">{{ week_days_formset.empty_form.day|as_crispy_field }}</div>
@@ -29,7 +29,7 @@
         {% endif %}
     </div>
     {% for wd_form in week_days_formset %}
-        <div class="row weekday_form">
+        <div class="row weekday_form_update">
             {{ wd_form.id }}
             <div class="col-4">{{ wd_form.day|as_crispy_field }}</div>
             <div class="col">{{ wd_form.time|as_crispy_field }}</div>
@@ -55,19 +55,6 @@
 
 
 {% block javascript %}
-<script src="{% static "dynamic_formsets/jquery.formset.js" %}" type="text/javascript"> </script>
-<script type="text/javascript">
-    $('.weekday_form').formset({
-        prefix: '{{ week_days_formset.prefix }}',
-        addText: 'Add another date',
-        addCssClass: 'btn btn-outline-primary',
-        addContainerClass: 'weekdays-container',
-        deleteText: 'Remove date',
-        deleteCssClass: 'btn btn-outline-dark btn-sm',
-        deleteContainerClass: 'delete-weekday-container',
-        formCssClass: 'dynamic-formset-{{ week_days_formset.prefix }}',
-        //formTemplate: $('.empty-weekday-form'),
-        hideLastAddForm: true,
-    });
-</script>
+<script src="{% static "dynamic_formsets/jquery.formset.js" %}" type="text/javascript"></script>
+<script src="{% static "control/weekday_dynamic_formset.js" %}" type="text/javascript"></script>
 {% endblock %}

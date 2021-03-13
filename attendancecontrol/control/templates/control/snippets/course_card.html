@@ -1,0 +1,46 @@
+<div class="col-sm-6">
+    <div class="card h-100 d-flex flex-column justify-content-between">
+        <div>
+            <div class="card-body card-title row">
+                <h5 class="h5 col">Name: {{ course.name }} {{ course.id }}</h5>
+                <div class="col-md-auto course-status-icon-container">
+                    <span class="course-status-{{ course.id }}-ongoing badge rounded-pill bg-success {{ course.is_ongoing|yesno:',visually-hidden,visually-hidden' }}">ongoing</span>
+                    <span class="course-status-{{ course.id }}-unknown badge rounded-pill bg-warning visually-hidden">unknown</span>
+                    <span class="course-status-{{ course.id }}-stopped badge rounded-pill bg-danger {{ course.is_ongoing|yesno:'visually-hidden,,visually-hidden' }}">not ongoing</span>
+                </div>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% if user.is_teacher %}
+                    <li class="list-group-item"># Students: {{ course.student_set.count }}</li>
+                {% else %}
+                    <li class="list-group-item">Taught by: {{ course.teacher.get_full_name }}</li>
+                {% endif %}
+                <li class="list-group-item">Duration: {{ course.duration }}min</li>
+                <li class="list-group-item">Minutes required to count as attended: {{ course.min_attend_time }}min</li>
+                <li class="list-group-item d-flex text-center flex-wrap">
+                {% for day in course.sorted_start_times_set %}
+                    <div class="card p-0 gx-1 weekday-display-container">
+                        <div class="card-header p-1">{{ day.get_day_display }}</div>
+                        <div class="card-body p-1">{{ day.time|time:"H:i" }}</div>
+                    </div>
+                {% empty %}
+                    No times registered for this course...
+                {% endfor %}
+                </li>
+            </ul>
+        </div>
+        <div class="card-footer d-flex justify-content-around gx-1 flex-wrap">
+        {% if user.is_teacher %}
+            {% if substitute %}
+                <a href="{{ course.get_absolute_additional_teacher_url }}" class="btn btn-primary m-1 btn-sm">Show Course</a>
+            {% else %}
+                <a href="{{ course.get_absolute_teacher_url }}" class="btn btn-primary m-1 btn-sm">Show Course</a>
+                <a href="{{ course.get_absolute_teacher_edit_url }}" class="btn btn-primary m-1 btn-sm">Edit Course</a>
+                <a href="{{ course.get_absolute_teacher_delete_url }}" class="btn btn-primary m-1 btn-sm">Delete Course</a>
+            {% endif %}
+        {% else %}
+            <a href="{{ course.get_absolute_student_url }}" class="btn btn-primary m-1 btn-sm">Show Course</a>
+        {% endif %}
+        </div>
+    </div>
+</div>
