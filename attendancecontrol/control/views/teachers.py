@@ -200,7 +200,7 @@ def set_access_token(request, pk):
         except Course.DoesNotExist:
             raise Http404("No Course matches the given query.")
 
-    token = AccessToken.objects.create(valid_time=course.duration)
+    token = AccessToken.objects.create(valid_time=course.token_valid_time)
     token.save()
     course.access_token = token
     course.save()

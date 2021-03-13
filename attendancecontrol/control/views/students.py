@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http.response import JsonResponse
 from django.shortcuts import redirect, get_object_or_404, render
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, DetailView, UpdateView
 from django.urls import reverse
@@ -111,7 +112,7 @@ def register_student_for_course(request, pk, token):
         course, request.user.student, token
     )
     if is_authenticated:
-        request.user.student.courses.add(course)
+        request.user.student.courses.add(course, through_defaults={'created': timezone.now(), 'modified': timezone.now()})
     messages.add_message(request, msg_type, msg)
     return redirect('student:detail', pk) if redirect_course else redirect('student:courses')
 

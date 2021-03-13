@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.utils import timezone
 
 from .. import utils
 from ..models import User
@@ -20,7 +21,7 @@ class UtilsTest(TestCase):
         self.assertDictEqual(utils.get_users_courses_ongoing_states(self.user), {})
 
     def test_student_query_show_correct_course(self):
-        self.student.courses.add(self.course)
+        self.student.courses.add(self.course, through_defaults={'created': timezone.now(), 'modified': timezone.now()})
         self.assertDictEqual(
             utils.get_users_courses_ongoing_states(self.student), {self.course.id: False}
         )

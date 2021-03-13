@@ -141,7 +141,7 @@ class StudentCoursesListTest(TestCase):
         """When student has a course assigned to their courses relationship show it on the page."""
         student = models.Student.objects.get(user__email=STUDENT_EMAIL)
         course = models.Course.objects.create(name="testcourse")
-        student.courses.add(course)
+        student.courses.add(course, through_defaults={'created': timezone.now(), 'modified': timezone.now()})
 
         self.client.force_login(student.user)
         response = self.client.get(reverse('student:courses'))
@@ -160,7 +160,7 @@ class StudentCourseDetailTest(TestCase):
         """Show a course's details that is in the students courses relationship."""
         student = models.Student.objects.get(user__email=STUDENT_EMAIL)
         course = models.Course.objects.create(name="testcourse")
-        student.courses.add(course)
+        student.courses.add(course, through_defaults={'created': timezone.now(), 'modified': timezone.now()})
 
         self.client.force_login(student.user)
         response = self.client.get(reverse('student:detail', args=(course.id,)))
@@ -183,7 +183,7 @@ class AuthenticateStudentCourseTest(TestCase):
         self.course = create_course(0)
 
     def test_student_course_exists_and_student_registered_to_course(self):
-        self.student.courses.add(self.course)
+        self.student.courses.add(self.course, through_defaults={'created': timezone.now(), 'modified': timezone.now()})
 
         retvals = students_view.authenticate_student_course(self.course, self.student, None)
         self.assertIs(retvals[0], False)
@@ -260,7 +260,7 @@ class TestRegisterStudentForCourse(TestCase):
         test that the redirect points to the courses details
         """
         self.client.force_login(self.student.user)
-        self.student.courses.add(self.course)
+        self.student.courses.add(self.course, through_defaults={'created': timezone.now(), 'modified': timezone.now()})
         response = self.client.get(reverse('student:register_course', args=(self.course.id, None)))
         self.assertRedirects(response, reverse('student:detail', args=(self.course.id,)))
 
@@ -320,7 +320,7 @@ class TestStudentLeaveCourse(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_successful_quit(self):
-        self.student.courses.add(self.course)
+        self.student.courses.add(self.course, through_defaults={'created': timezone.now(), 'modified': timezone.now()})
         self.client.force_login(self.student.user)
         self.client.get(reverse('student:leave_course', args=(self.course.id,)))
         student = models.Student.objects.get(pk=self.student.user.id)
@@ -343,7 +343,7 @@ class GetCoursesStatesTest(TestCase):
             day=models.WeekDayChoices.FRIDAY,
             time=timezone.now().replace(hour=9, minute=0, second=0, microsecond=0).time()
         )
-        self.student.courses.add(self.course)
+        self.student.courses.add(self.course, through_defaults={'created': timezone.now(), 'modified': timezone.now()})
         self.student.refresh_from_db()
         self.client.force_login(self.student.user)
         response = self.client.get(reverse('student:courses_status'))
@@ -355,7 +355,7 @@ class GetCoursesStatesTest(TestCase):
             day=models.WeekDayChoices.MONDAY,
             time=timezone.now().time()
         )
-        self.student.courses.add(self.course)
+        self.student.courses.add(self.course, through_defaults={'created': timezone.now(), 'modified': timezone.now()})
         self.student.refresh_from_db()
         self.client.force_login(self.student.user)
         response = self.client.get(reverse('student:courses_status'))
