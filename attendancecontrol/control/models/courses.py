@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.db import models
 from django.urls import reverse
 
+from .base import BaseUpdatingModel
 
 class WeekDayChoices(models.IntegerChoices):
     MONDAY = 0, 'MON'
@@ -16,7 +17,7 @@ class WeekDayChoices(models.IntegerChoices):
     SUNDAY = 6, 'SUN'
 
 
-class WeekDay(models.Model):
+class WeekDay(BaseUpdatingModel):
     day = models.IntegerField(
         "course day",
         choices=WeekDayChoices.choices,
@@ -77,14 +78,17 @@ class AccessToken(models.Model):
         return f"created: {self.created}, valid for {self.valid_time}"
 
 
-class Course(models.Model):
+class Course(BaseUpdatingModel):
     name = models.CharField("course name", max_length=200)
     uuid = models.UUIDField("course identifier", primary_key=False, unique=True, default=uuid4, editable=False)
     min_attend_time = models.IntegerField("minimum time present to count as attended in minutes", default=45)
     duration = models.IntegerField("course duration in minutes", default=90)
     ongoing = models.BooleanField(default=False)
+    start_date = models.DateField("start date of the course", blank=True, null=True)
+    end_date = models.DateField("end date of the course", blank=True, null=True)
     teacher = models.ForeignKey('Teacher', on_delete=models.CASCADE, related_name='courses', null=True)
 
+    token_valid_time = models.IntegerField("time until the registration token expires", default=90)
     access_token = models.OneToOneField(AccessToken, on_delete=models.CASCADE, null=True, blank=True)
 
     def get_absolute_student_url(self):
@@ -145,3 +149,14 @@ class Course(models.Model):
             f"min_attend_time: {self.min_attend_time}, "
             f"duration: {self.duration}"
         )
+
+
+class AttendanceRecord(BaseUpdatingModel):
+    attended = models.BooleanField("has attended course")
+    weekday = models.ForeignKey(WeekDay, on_delete=models.SET_NULL, null=True)
+
+
+class CourseStudentAttendance(BaseUpdatingModel):
+    student = models.ForeignKey('Student', on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    attendance_dates = models.ForeignKey(AttendanceRecord, on_delete=models.CASCADE, blank=True, null=True)

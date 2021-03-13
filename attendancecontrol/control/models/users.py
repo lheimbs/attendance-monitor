@@ -59,7 +59,7 @@ class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     student_nr = models.IntegerField("matrikel nr")
     mac = MACAddressField(null=True, blank=True, integer=False)
-    courses = models.ManyToManyField('Course')
+    courses = models.ManyToManyField('Course', through='CourseStudentAttendance')
 
     def __str__(self):
         return f"user: {self.user}, stud.nr {self.student_nr}, mac: {self.mac}"
