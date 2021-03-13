@@ -1,2 +1,7 @@
 .weekday-display-container:first { margin-right: 0; }
 .weekday-display-container { margin-right: 1rem; }
+
+#navbar-user-information-text {
+    width: 13rem;
+    font-size: 0.8rem !important;
+}

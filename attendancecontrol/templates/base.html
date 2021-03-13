@@ -27,7 +27,7 @@
             {% endif %}
             {% if user.is_authenticated %}
               <a class="nav-link" href="{% url 'logout' %}" tabindex="-1">Logout</a>
-              <span class="navbar-text text-wrap py-0 pl-2" style="width: 13rem; font-size: 0.8rem !important;">
+              <span id="navbar-user-information-text" class="navbar-text text-wrap py-0 pl-2">
                 Logged in
               {% if user.is_student %}
                   as a Student
