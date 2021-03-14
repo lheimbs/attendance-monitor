@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.db import transaction
 from macaddress.formfields import MACAddressField
 
-from .models.users import Student, Teacher, User
+from .models.users import Student, Teacher, User, WifiInfo
 from .models.courses import Course, WeekDay
 
 
@@ -57,7 +57,9 @@ class StudentSignUpForm(CustomUserCreationForm):
         Student.objects.create(
             user=user,
             student_nr=self.cleaned_data.get('student_nr'),
-            mac=self.cleaned_data.get('mac')
+            wifi_info=WifiInfo.objects.create(
+                mac=self.cleaned_data.get('mac')
+            ),
         )
         return user
 

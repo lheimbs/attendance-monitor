@@ -121,10 +121,11 @@ class Course(BaseUpdatingModel):
             return True
 
         for day in self.start_times.all():
-            max_duration_day = day.get_this_weeks_date() + timezone.timedelta(minutes=self.duration)
-            if day.get_this_weeks_date() <= timezone.now() < max_duration_day:
-                return True
-        return False
+            start_date = day.get_this_weeks_date()
+            max_duration_day = start_date + timezone.timedelta(minutes=self.duration)
+            if start_date <= timezone.now() < max_duration_day:
+                return (day, start_date, max_duration_day)
+        return tuple()
 
     def get_next_date(self):
         """Get the next date the course is taking place.

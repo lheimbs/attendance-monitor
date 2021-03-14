@@ -30,7 +30,9 @@ def create_student(custom_email=""):
             is_student=True,
         ),
         student_nr=123,
-        mac="112233445566"
+        wifi_info=models.WifiInfo.objects.create(
+            mac="112233445566"
+        )
     )
     return student
 
@@ -101,12 +103,19 @@ class StudentEditTest(TestCase):
         response = self.client.get(reverse('student:edit_account', args=(self.student.user.id,)))
         self.assertContains(response, '11:22:33:44:55:66')  # TODO: properly format mac using netaddr
 
+    def test_empty_student_mac_in_edit_data(self):
+        self.student.wifi_info = None
+        self.student.save()
+        self.client.force_login(self.student.user)
+        response = self.client.get(reverse('student:edit_account', args=(self.student.user.id,)))
+        self.assertNotContains(response, '11:22:33:44:55:66')  # TODO: properly format mac using netaddr
+
     def test_student_data_actually_changed(self):
         self.client.force_login(self.student.user)
         data = {
             'email': self.student.user.email,
             'student_nr': '111111',
-            'mac': self.student.mac,
+            'mac': self.student.wifi_info.mac,
         }
         self.client.post(reverse('student:edit_account', args=(self.student.user.id,)), data=data)
         self.student.refresh_from_db()

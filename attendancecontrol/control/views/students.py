@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from ..decorators import student_required
 from ..forms import StudentSignUpForm, StudentCourseManualRegisrationForm, StudentUpdateForm
-from ..models.users import User
+from ..models.users import User, WifiInfo
 from ..models.courses import Course
 
 
@@ -40,9 +40,13 @@ class StudentEdit(UpdateView):
         return User.objects.filter(pk=self.request.user.id)
 
     def get_initial(self):
+        if self.request.user.student.wifi_info:
+            mac = self.request.user.student.wifi_info.mac
+        else:
+            mac = ''
         initial = super().get_initial()
         initial['student_nr'] = self.request.user.student.student_nr
-        initial['mac'] = self.request.user.student.mac
+        initial['mac'] = mac
         return initial
 
     def get_success_url(self):
@@ -50,7 +54,7 @@ class StudentEdit(UpdateView):
 
     def form_valid(self, form):
         self.object.student.student_nr = form.cleaned_data['student_nr']
-        self.object.student.mac = form.cleaned_data['mac']
+        self.object.student.wifi_info = WifiInfo.objects.create(mac=form.cleaned_data['mac'])
         self.object.student.save()
         return super().form_valid(form)
 

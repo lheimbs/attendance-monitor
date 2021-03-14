@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from macaddress.fields import MACAddressField
 
+from .base import BaseUpdatingModel
 
 class CustomUserManager(BaseUserManager):
     """
@@ -57,12 +58,21 @@ class User(AbstractUser):
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    wifi_info = models.OneToOneField('WifiInfo', on_delete=models.CASCADE, null=True, blank=True)
     student_nr = models.IntegerField("matrikel nr")
-    mac = MACAddressField(null=True, blank=True, integer=False)
     courses = models.ManyToManyField('Course', through='CourseStudentAttendance')
 
     def __str__(self):
-        return f"user: {self.user}, stud.nr {self.student_nr}, mac: {self.mac}"
+        return f"user: {self.user}, stud.nr {self.student_nr}, mac: {self.wifi_info.mac if self.wifi_info else ''}"
+
+
+class WifiInfo(BaseUpdatingModel):
+    mac = MACAddressField(null=True, blank=True, integer=False)
+    mac_burst_interval = models.FloatField(default=0)
+    mac_burst_count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.mac.format()
 
 
 class Teacher(models.Model):

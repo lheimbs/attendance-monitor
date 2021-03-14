@@ -40,8 +40,12 @@ class StudentAdminFormTest(TestCase):
                 is_student=True,
             ),
             student_nr=123,
-            mac="112233445566"
+            wifi_info=models.WifiInfo.objects.create(
+                mac="112233445566"
+            )
         )
+        self.student_data = model_to_dict(self.student)
+        self.student_data['mac'] = self.student.wifi_info.mac
         self.client.force_login(self.teacher.user)
 
     def test_student_admin_form_can_get(self):
@@ -51,7 +55,7 @@ class StudentAdminFormTest(TestCase):
         self.assertContains(response, 'Courses:')
 
     def test_student_admin_form_has_user(self):
-        form = forms.StudentAdminForm(instance=self.student, data=model_to_dict(self.student))
+        form = forms.StudentAdminForm(instance=self.student, data=self.student_data)
         new_student = form.save(commit=True)
         self.assertEqual(new_student.pk, self.student.pk)
 
@@ -62,17 +66,22 @@ class StudentAdminFormTest(TestCase):
             is_student=True,
         )
 
-        student_data = model_to_dict(self.student)
-        student_data['user'] = new_user.id
-        form = forms.StudentAdminForm(data=student_data)
+        self.student_data['user'] = new_user.id
+        form = forms.StudentAdminForm(data=self.student_data)
         new_student = form.save(commit=True)
         self.assertEqual(new_student.user.email, new_user.email)
 
-    def test_student_admin_form_does_not_commit___(self):
-        student_data = model_to_dict(self.student)
-        form = forms.StudentAdminForm(instance=self.student, data=student_data)
+    def test_student_admin_form_saves_with_no_changed_data(self):
+        form = forms.StudentAdminForm(instance=self.student, data=self.student_data)
         new_student = form.save()
         self.assertQuerysetEqual(new_student.courses.all(), [])
+
+    def test_student_admin_form_changes_mac_address(self):
+        student_data = self.student_data
+        student_data['mac'] = 'aaffaaffaaff'
+        form = forms.StudentAdminForm(instance=self.student, data=student_data)
+        new_student = form.save()
+        self.assertEqual(new_student.wifi_info.mac.format(), 'AA-FF-AA-FF-AA-FF')
 
     def test_student_admin_form_does_not_commit(self):
         some_user = models.User.objects.create(

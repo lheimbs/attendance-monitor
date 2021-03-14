@@ -53,5 +53,7 @@ class StudentAdmin(admin.ModelAdmin):
     model = models.Student
     form = forms.StudentAdminForm
 
+    # inlines = [WifiInfoInline]
+
 
 admin.site.register((models.WeekDay, models.AccessToken, models.CourseStudentAttendance))

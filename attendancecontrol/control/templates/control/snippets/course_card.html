@@ -2,7 +2,7 @@
     <div class="card h-100 d-flex flex-column justify-content-between">
         <div>
             <div class="card-body card-title row">
-                <h5 class="h5 col">Name: {{ course.name }} {{ course.id }}</h5>
+                <h5 class="h5 col">Name: {{ course.name }}</h5>
                 <div class="col-md-auto course-status-icon-container">
                     <span class="course-status-{{ course.id }}-ongoing badge rounded-pill bg-success {{ course.is_ongoing|yesno:',visually-hidden,visually-hidden' }}">ongoing</span>
                     <span class="course-status-{{ course.id }}-unknown badge rounded-pill bg-warning visually-hidden">unknown</span>

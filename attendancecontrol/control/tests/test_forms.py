@@ -38,4 +38,4 @@ class StudentSignUpFormTest(TestCase):
         self.assertEqual(user_models.Student.objects.last().user.username, STUDENT_EMAIL)
         self.assertTrue(user_models.Student.objects.last().user.is_student)
         self.assertEqual(user_models.Student.objects.last().student_nr, 123)
-        self.assertEqual(user_models.Student.objects.last().mac, '112233445566')
+        self.assertEqual(user_models.Student.objects.last().wifi_info.mac, '112233445566')

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'fullurl',
     'crispy_forms',
     'qr_code',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [

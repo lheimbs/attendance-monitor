@@ -1,23 +1,35 @@
 from django import forms
+from django.contrib import admin
 from django.utils import timezone
 
+from macaddress.formfields import MACAddressField
+
 from .. import models
+
+
+class WifiInfoInline(admin.TabularInline):
+    model = models.WifiInfo
+    fields = ('mac',)
+
 
 class StudentAdminForm(forms.ModelForm):
     courses = forms.ModelMultipleChoiceField(
         queryset=models.Course.objects.all(),
         required=False,
     )
+    mac = MACAddressField(help_text="Your phones MAC Address")
 
     class Meta:
         model = models.Student
-        fields = '__all__'
+        fields = ('user', 'student_nr')
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         if self.instance and self.instance.pk:
             self.fields['courses'].initial = self.instance.courses.all()
+            mac = self.instance.wifi_info.mac if self.instance.wifi_info else ''
+            self.fields['mac'].initial = mac
 
     def save(self, commit=True):
         student = super().save(commit=False)
@@ -25,6 +37,10 @@ class StudentAdminForm(forms.ModelForm):
             student.save()
 
         if student.pk:
+            if student.wifi_info and student.wifi_info.mac != self.cleaned_data['mac']:
+                student.wifi_info.mac = self.cleaned_data['mac']
+            else:
+                student.wifi_info = models.WifiInfo.objects.create(mac=self.cleaned_data['mac'])
             student.courses.set(
                 self.cleaned_data['courses'],
                 through_defaults={'created': timezone.now(), 'modified': timezone.now()}
