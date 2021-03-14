@@ -34,6 +34,9 @@ coverage.xml
 doc/resources
 doc/resources/*
 
+# django jupyter stuff for now
+attendancecontrol/jupyter/
+
 #-----------------------------------------------
 
 ## Core latex/pdflatex auxiliary files:
