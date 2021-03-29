@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -8,6 +9,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, DetailView, UpdateView
 from django.urls import reverse
 
+from . import probes
 from ..decorators import student_required
 from ..forms import StudentSignUpForm, StudentCourseManualRegisrationForm, StudentUpdateForm
 from ..models.users import User, WifiInfo
@@ -79,6 +81,12 @@ class StudentCourseDetail(DetailView):
     context_object_name = 'course'
     template_name = 'control/students/course.html'
 
+    # def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+    #     ctx = super().get_context_data(**kwargs)
+    #     graph = probes.get_students_probe_records(self.request.user.student, self.object)
+    #     ctx['graph'] = graph
+    #     return ctx
+
     def get_queryset(self):
         return self.request.user.student.courses.all()
 
@@ -116,7 +124,9 @@ def register_student_for_course(request, pk, token):
         course, request.user.student, token
     )
     if is_authenticated:
-        request.user.student.courses.add(course, through_defaults={'created': timezone.now(), 'modified': timezone.now()})
+        request.user.student.courses.add(
+            course, through_defaults={'created': timezone.now(), 'modified': timezone.now()}
+        )
     messages.add_message(request, msg_type, msg)
     return redirect('student:detail', pk) if redirect_course else redirect('student:courses')
 

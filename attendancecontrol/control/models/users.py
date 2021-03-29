@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from macaddress.fields import MACAddressField
@@ -56,7 +57,7 @@ class User(AbstractUser):
         return self.email
 
 
-class Student(models.Model):
+class Student(BaseUpdatingModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     wifi_info = models.OneToOneField('WifiInfo', on_delete=models.CASCADE, null=True, blank=True)
     student_nr = models.IntegerField("matrikel nr")
@@ -70,12 +71,13 @@ class WifiInfo(BaseUpdatingModel):
     mac = MACAddressField(null=True, blank=True, integer=False)
     mac_burst_interval = models.FloatField(default=0)
     mac_burst_count = models.PositiveIntegerField(default=0)
+    mac_burst_updated = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return self.mac.format()
 
 
-class Teacher(models.Model):
+class Teacher(BaseUpdatingModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     additional_courses = models.ManyToManyField('Course', related_name='additional_teachers')
 

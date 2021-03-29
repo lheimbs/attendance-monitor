@@ -1,6 +1,6 @@
-from .models.probes import ProbeRequests
+from .models.probes import ProbeRequest
 
-class ProbeRequestsRouter(object):      # pragma: no cover
+class ProbeRequestRouter(object):      # pragma: no cover
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         """
@@ -8,23 +8,23 @@ class ProbeRequestsRouter(object):      # pragma: no cover
         'auth_db' database.
         """
         if db == "probes":
-            if model_name == ProbeRequests._meta.model_name:
+            if model_name == ProbeRequest._meta.model_name:
                 return True
             else:
                 return False
-        elif model_name == ProbeRequests._meta.model_name:
+        elif model_name == ProbeRequest._meta.model_name:
             return False
             # return db == 'auth_db'
         return None
 
     def db_for_read(self, model, **hints):
-        """ reading ProbeRequests from probes DB """
-        if model == ProbeRequests:
+        """ reading ProbeRequest from probes DB """
+        if model == ProbeRequest:
             return 'probes'
         return 'default'
 
     def db_for_write(self, model, **hints):
         """ writing SomeModel to otherdb """
-        if model == ProbeRequests:
+        if model == ProbeRequest:
             raise Exception("Probes can only be read from this app!")
         return None

@@ -4,6 +4,11 @@
 
 <span id="course-status-url" class="visually-hidden" data-course-status-url="{% url 'student:courses_status' %}"></span>
 
+<div class="row">
+    <div class="col">Your <b>mac_burst_interval</b>: {{ user.student.wifi_info.mac_burst_interval|floatformat }} seconds</div>
+    <div class="col">Calculated from {{user.student.wifi_info.mac_burst_count }} recieved probe requests.</div>
+</div>
+
 <div class="jumbotron py-2">
     <div class="row d-flex justify-content-center">
         <a class="col-6 btn btn-primary" href="{% url 'student:register_course_manual' %}" role="button">Manually add a new Course</a>

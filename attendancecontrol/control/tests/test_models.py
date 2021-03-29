@@ -87,6 +87,12 @@ class WeekDayModelTests(TestCase):
         weekday = models.WeekDay.objects.get(day=models.WeekDayChoices.MONDAY, time=TIME_FOR_TESTING)
         self.assertNotEqual(weekday.get_this_weeks_date(), NOW_FOR_TESTING)
 
+    def test_get_this_weeks_date_with_reference_date(self, *args):
+        """get_this_weeks_date() does not equal wrong weeks date (off by 5mins)"""
+        weekday = models.WeekDay.objects.get(day=models.WeekDayChoices.MONDAY, time=TIME_FOR_TESTING)
+        weeks_data = weekday.get_this_weeks_date(NOW_FOR_TESTING - timezone.timedelta(days=14))
+        self.assertEqual(weeks_data, NOW_FOR_TESTING - timezone.timedelta(days=7, minutes=5))
+
     def test_get_this_weeks_date_correct_day_of_the_week(self, *args):
         """
         test if get_this_weeks_date() returns correct day of the week.

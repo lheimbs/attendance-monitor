@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'attendancecontrol.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-DATABASE_ROUTERS = ('control.dbrouters.ProbeRequestsRouter',)
+DATABASE_ROUTERS = ('control.dbrouters.ProbeRequestRouter',)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -153,3 +153,5 @@ MESSAGE_TAGS = {
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
 }
+
+MACADDRESS_DEFAULT_DIALECT = 'netaddr.mac_unix_expanded'

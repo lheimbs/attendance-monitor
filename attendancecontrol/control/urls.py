@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from .views import home, students, teachers
+from .views import home, students, teachers, probes
 
 urlpatterns = [
     path('', home.home, name='home'),
@@ -24,4 +24,12 @@ urlpatterns = [
         path('course/enable/<int:pk>/', teachers.set_access_token, name='enable_course'),
         path('course/states/', teachers.get_courses_states, name='courses_status'),
     ], 'control'), namespace='teacher')),
+    path('probes/', include(([
+        path('student/query/ongoing', probes.get_students_attendance_currently_ongoing, name="student_ongoing"),
+        path(
+            'student/query/course_graph/<int:course_pk>/',
+            probes.get_student_course_probes_graph,
+            name="student_course_graph"
+        ),
+    ], 'control'), namespace='probes')),
 ]

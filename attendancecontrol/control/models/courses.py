@@ -31,14 +31,22 @@ class WeekDay(BaseUpdatingModel):
             WeekDayChoices(self.day).label, self.time
         )
 
-    def get_this_weeks_date(self):
-        now = timezone.localtime(timezone.localtime().replace(
+    def get_this_weeks_date(self, reference_date=None):
+        one_week_delta = timezone.timedelta(days=7)
+        if reference_date:
+            now = reference_date
+        else:
+            now = timezone.localtime()
+        now = timezone.localtime(now.replace(
             hour=self.time.hour,
             minute=self.time.minute,
             second=self.time.second,
             microsecond=0
         ), timezone.utc)
-        return now + timezone.timedelta(days=-now.weekday()+self.day)
+        now = now + timezone.timedelta(days=-now.weekday()+self.day)
+        if reference_date and now < reference_date:
+            now = now + one_week_delta
+        return now
 
     class Meta:
         constraints = [
@@ -84,8 +92,8 @@ class Course(BaseUpdatingModel):
     min_attend_time = models.IntegerField("minimum time present to count as attended in minutes", default=45)
     duration = models.IntegerField("course duration in minutes", default=90)
     ongoing = models.BooleanField(default=False)
-    start_date = models.DateField("start date of the course", blank=True, null=True)
-    end_date = models.DateField("end date of the course", blank=True, null=True)
+    start_date = models.DateTimeField("start date of the course", blank=True, null=True)
+    end_date = models.DateTimeField("end date of the course", blank=True, null=True)
     teacher = models.ForeignKey('Teacher', on_delete=models.CASCADE, related_name='courses', null=True)
 
     token_valid_time = models.IntegerField("time until the registration token expires", default=90)

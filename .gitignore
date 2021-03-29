@@ -35,7 +35,7 @@ doc/resources
 doc/resources/*
 
 # django jupyter stuff for now
-attendancecontrol/jupyter/
+attendancecontrol/Jupyter/
 
 #-----------------------------------------------
 

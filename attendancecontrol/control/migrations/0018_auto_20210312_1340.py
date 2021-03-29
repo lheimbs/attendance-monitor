@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ProbeRequests',
+            name='ProbeRequest',
             fields=[
                 ('id', models.IntegerField(primary_key=True, serialize=False)),
                 ('time', models.DateTimeField(blank=True, null=True)),
