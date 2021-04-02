@@ -25,9 +25,9 @@ urlpatterns = [
         path('course/states/', teachers.get_courses_states, name='courses_status'),
     ], 'control'), namespace='teacher')),
     path('probes/', include(([
-        path('student/query/ongoing', probes.get_students_attendance_currently_ongoing, name="student_ongoing"),
+        path('ws/student/query/ongoing', probes.get_students_attendance_currently_ongoing, name="student_ongoing"),
         path(
-            'student/query/course_graph/<int:course_pk>/',
+            'ws/student/query/course_graph/<int:course_pk>/',
             probes.get_student_course_probes_graph,
             name="student_course_graph"
         ),

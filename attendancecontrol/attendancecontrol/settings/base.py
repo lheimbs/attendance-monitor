@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'qr_code',
     'django_extensions',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -81,7 +82,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'attendancecontrol.wsgi.application'
-
+ASGI_APPLICATION = 'attendancecontrol.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases

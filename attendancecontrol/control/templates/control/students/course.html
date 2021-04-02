@@ -23,7 +23,7 @@
         {% endif %}
         <a href="{{ course.get_absolute_student_leave_url }}" class="btn btn-primary m-1 btn-sm">Leave Course</a>
     </div>
-    <div id="probes-graph-container" class="row" data-url="{% url 'probes:student_course_graph' course.pk %}">
+    <div id="probes-graph-container" class="row" data-course-id="{{ course.pk }}">
         <div class="d-flex justify-content-center">
             <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>

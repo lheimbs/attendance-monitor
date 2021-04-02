@@ -36,9 +36,8 @@ def get_students_attendance_currently_ongoing(request):
     return JsonResponse(attendance)
 
 
-@student_required
-def get_student_course_probes_graph(request, course_pk):
-    student = request.user.student
+# @student_required
+def get_student_course_probes_graph(student, course_pk):
     course = student.courses.get(pk=course_pk)
     fig = get_students_probe_records(student, course)
     # TODO: include plotly.js in static files to be gdpr compliant
