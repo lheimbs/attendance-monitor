@@ -13,7 +13,7 @@ def home(request):
     elif request.user.is_authenticated:
         messages.add_message(request, messages.ERROR, (
             "You are neither a student nor a teacher. "
-            "Please either contact the administrator to assign your account a role or "
+            "Please contact the administrator to assign your account a role or "
             "login with a different account.")
         )
         logout(request)
