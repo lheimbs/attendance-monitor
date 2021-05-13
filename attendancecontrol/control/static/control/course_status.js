@@ -23,9 +23,7 @@ $(document).ready(function(){
     };
 
     chatSocket.onclose = function(e) {
-        $('span[class^="course-status-"][class*="-ongoing"]').addClass('visually-hidden');
-        $('span[class^="course-status-"][class*="-stopped"]').addClass('visually-hidden');
-        $('span[class^="course-status-"][class*="-unknown"]').removeClass('visually-hidden');
+        setTimeout(setCourseStatusUnknown, 1000);
     };
 
     chatSocket.addEventListener('open', function (event) {
@@ -34,3 +32,9 @@ $(document).ready(function(){
         }, 30000); // 30 sec
     });
 });
+
+function setCourseStatusUnknown() {
+    $('span[class^="course-status-"][class*="-ongoing"]').addClass('visually-hidden');
+    $('span[class^="course-status-"][class*="-stopped"]').addClass('visually-hidden');
+    $('span[class^="course-status-"][class*="-unknown"]').removeClass('visually-hidden');
+};
