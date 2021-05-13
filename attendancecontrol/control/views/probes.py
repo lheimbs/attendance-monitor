@@ -36,8 +36,9 @@ def get_students_attendance_currently_ongoing(request):
     return JsonResponse(attendance)
 
 
-# @student_required
-def get_student_course_probes_graph(student, course_pk):
+@student_required
+def get_student_course_probes_graph(request, course_pk):
+    student = request.user.student
     course = student.courses.get(pk=course_pk)
     fig = get_students_probe_records(student, course)
     # TODO: include plotly.js in static files to be gdpr compliant
@@ -165,6 +166,13 @@ def update_student_burst_info(student: models.Student) -> None:
             student.wifi_info.save()
 
 
+def get_start_date(datetime: datetime, dates: utils.DatetimeRangeList) -> datetime:
+    for date in dates.list:
+        if date.start_date <= datetime < date.end_date:
+            return date.start_date
+    return None
+
+
 def get_students_probe_records(student: models.Student,
                                course: models.Course) -> str:
     query_date = timezone.now()
@@ -178,23 +186,17 @@ def get_students_probe_records(student: models.Student,
                 dates.add(utils.DatetimeRange(start_date, end_date))
         course_date += timezone.timedelta(days=7)
 
+    query = reduce(operator.or_, (Q(time__range=[date.start_date, date.end_date]) for date in dates.list))
+    probe_times = models.ProbeRequest.objects.filter(query, mac=student.wifi_info.mac)\
+        .order_by('time').values_list('time', flat=True)
+
     course_dates = []
     minutes = []
-    probescount = 0
-    for date in dates.list:
-        start_str = date.start_date.strftime('%a, %d.%m %H:%M')
-        probs = models.ProbeRequest.objects.filter(
-            mac=student.wifi_info.mac,
-            time__range=[date.start_date, date.end_date]
-        )
-        probescount += probs.count()
-        # if probs.count() == 0:
-        #     course_dates.append(start_str)
-        #     minutes.append(0)
-        for probe in probs:
-            probe_time = timezone.make_aware(probe.time, timezone.utc)
-            course_dates.append(start_str)
-            minutes.append((probe_time - date.start_date).total_seconds() // 60)
+    for probe_time in probe_times:
+        probe_time = timezone.make_aware(probe_time, timezone.utc)
+        start_date = get_start_date(probe_time, dates)
+        course_dates.append(start_date.strftime('%a, %d.%m %H:%M'))
+        minutes.append((probe_time - start_date).total_seconds() // 60)
 
     return px.strip(
         x=minutes, y=course_dates,
