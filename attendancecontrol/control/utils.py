@@ -21,8 +21,8 @@ class DatetimeRange:
 
     def __eq__(self, other):
         return (
-            (self.start_date == other.start_date) and
-            (self.end_date == other.end_date)
+            (self.start_date == other.start_date)
+            and (self.end_date == other.end_date)
         )
 
     def __and__(self, other):
