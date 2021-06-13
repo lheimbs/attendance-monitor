@@ -1,4 +1,5 @@
 import secrets
+from typing import Tuple, Union
 from uuid import uuid4
 
 from django.utils import timezone
@@ -124,9 +125,9 @@ class Course(BaseUpdatingModel):
     def get_absolute_teacher_edit_url(self):
         return reverse('teacher:edit', args=[str(self.id)])
 
-    def is_ongoing(self):
-        if self.ongoing:
-            return True
+    def is_ongoing(self) -> Tuple[WeekDay, timezone.datetime, int]:
+        # if self.ongoing:
+        #     return True
 
         for day in self.start_times.all():
             start_date = day.get_this_weeks_date()
@@ -135,7 +136,7 @@ class Course(BaseUpdatingModel):
                 return (day, start_date, max_duration_day)
         return tuple()
 
-    def get_next_date(self):
+    def get_next_date(self) -> Union[None, timezone.datetime]:
         """Get the next date the course is taking place.
         If there are no dates for this course, return None.
         """
@@ -161,11 +162,19 @@ class Course(BaseUpdatingModel):
 
 
 class AttendanceRecord(BaseUpdatingModel):
-    attended = models.BooleanField("has attended course")
+    arrival = models.DateTimeField()
+    departure = models.DateTimeField(null=True, blank=True)
+    attended = models.BooleanField("has attended course", default=False)
     weekday = models.ForeignKey(WeekDay, on_delete=models.SET_NULL, null=True)
+
+    student_course = models.ForeignKey('CourseStudentAttendance',
+                                       on_delete=models.SET_NULL,
+                                       blank=True,
+                                       null=True,
+                                       related_name='attendance_dates')
 
 
 class CourseStudentAttendance(BaseUpdatingModel):
     student = models.ForeignKey('Student', on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    attendance_dates = models.ForeignKey(AttendanceRecord, on_delete=models.CASCADE, blank=True, null=True)
+    # attendance_dates = models.ForeignKey(AttendanceRecord, on_delete=models.CASCADE, blank=True, null=True)
