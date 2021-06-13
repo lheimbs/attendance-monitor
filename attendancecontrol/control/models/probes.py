@@ -8,10 +8,13 @@
 from django.db import models
 from macaddress.fields import MACAddressField
 
+from .users import WifiInfo
+
 
 class ProbeRequest(models.Model):      # pragma: no cover
-    id = models.IntegerField(primary_key=True)
+    # id = models.IntegerField(primary_key=True)
     time = models.DateTimeField(blank=True, null=True)
+    mac_addr = models.ForeignKey(WifiInfo, on_delete=models.PROTECT, null=True)
     mac = MACAddressField(null=True, blank=True, integer=False)
     vendor = models.CharField(max_length=200, blank=True, null=True)
     ssid = models.CharField(max_length=200, blank=True, null=True)
@@ -19,19 +22,11 @@ class ProbeRequest(models.Model):      # pragma: no cover
     raw = models.CharField(max_length=1000, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'probe_requests'
-
-    def save(self, *args, **kwargs):
-        return
-
-    def delete(self, *args, **kwargs):
-        return
 
     def __str__(self):
         return (
             f"{self.time.isoformat()}: "
             f"mac: {self.mac}, "
-            f"vendor: {self.vendor}, "
-            f"ssid: {self.ssid}."
         )
