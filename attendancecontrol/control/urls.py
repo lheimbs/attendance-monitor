@@ -31,5 +31,6 @@ urlpatterns = [
             probes.get_student_course_probes_graph,
             name="student_course_graph"
         ),
+        path('add', probes.incoming_probe_view),
     ], 'control'), namespace='probes')),
 ]
