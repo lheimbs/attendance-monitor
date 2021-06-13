@@ -49,6 +49,9 @@ INSTALLED_APPS = [
     'qr_code',
     'django_extensions',
     'channels',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'django_fsm',
 ]
 
 MIDDLEWARE = [
@@ -86,16 +89,16 @@ ASGI_APPLICATION = 'attendancecontrol.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-DATABASE_ROUTERS = ('control.dbrouters.ProbeRequestRouter',)
+# DATABASE_ROUTERS = ('control.dbrouters.ProbeRequestRouter',)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'probes': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': BASE_DIR / 'probes.sqlite3',
-    },
+    # 'probes': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': BASE_DIR / 'probes.sqlite3',
+    # },
 }
 
 
@@ -156,3 +159,23 @@ MESSAGE_TAGS = {
 }
 
 MACADDRESS_DEFAULT_DIALECT = 'netaddr.mac_unix_expanded'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': True,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'root': {
+#         'handlers': ['console'],
+#         'level': 'WARNING',
+#     },
+# }
