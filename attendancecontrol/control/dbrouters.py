@@ -1,6 +1,14 @@
 from .models.probes import ProbeRequest
+from .models import WifiInfo
 
 class ProbeRequestRouter(object):      # pragma: no cover
+
+    def allow_relation(self, obj1, obj2, **hints):
+        probes_wifiinfo = (ProbeRequest._meta.model_name, WifiInfo._meta.model_name)
+        print(obj1._meta.model_name, obj2._meta.model_name, hints)
+        if obj1._meta.model_name in probes_wifiinfo and obj2._meta.model_name in probes_wifiinfo:
+            return True
+        return None
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         """
@@ -26,5 +34,5 @@ class ProbeRequestRouter(object):      # pragma: no cover
     def db_for_write(self, model, **hints):
         """ writing SomeModel to otherdb """
         if model == ProbeRequest:
-            raise Exception("Probes can only be read from this app!")
+            return 'probes'
         return None
