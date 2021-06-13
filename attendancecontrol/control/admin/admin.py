@@ -63,3 +63,13 @@ class WifiInfoAdmin(admin.ModelAdmin):
 
 
 admin.site.register((models.WeekDay, models.AccessToken, models.CourseStudentAttendance))
+
+
+@admin.register(models.Probemon)
+class ProbemonAdmin(admin.ModelAdmin):
+    model = models.Probemon
+    readonly_fields = ['user', 'token']
+
+    def save_model(self, request, obj, form, change):
+        obj.create_user()
+        super().save_model(request, obj, form, change)
