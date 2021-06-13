@@ -9,10 +9,111 @@ from django.db.models import Q
 from django.http.response import JsonResponse
 from django.utils import timezone
 from django.db.models.query import QuerySet
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 from .. import models
 from .. import utils
 from ..decorators import student_required
+from ..serializers import ProbeRequestSerializer
+
+
+@api_view(['POST'])
+def incoming_probe_view(request):
+    print("ADD")
+    if request.method == 'POST':
+        serializer = ProbeRequestSerializer(data=request.data.dict())
+        if serializer.is_valid():
+            probe = serializer.save()
+            consume_probe(probe)
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_403_FORBIDDEN)
+
+
+# TODO: Add identifyer to track correlating arrival/departure cycles
+
+
+def consume_probe(probe: models.ProbeRequest) -> None:  # noqa C901
+    if not probe.mac_addr:
+        w_info, _ = models.WifiInfo.objects.get_or_create(mac=probe.mac)
+        probe.mac_addr = w_info
+        probe.save()
+
+    print("previous:", probe.mac_addr.state)
+    if probe.mac_addr.state == models.State.INITIAL:
+        probe.mac_addr.initial_probe_detected(probe)
+    elif probe.mac_addr.state == models.State.POTENTIAL_ARRIVAL:
+        try:
+            probe.mac_addr.arrival_threshold(probe)
+            add_arrival(probe.mac_addr, probe.time)
+        except models.ArrivalThreshholdExceededError:
+            probe.mac_addr.withdrawal_threshold()
+    elif probe.mac_addr.state == models.State.ARRIVAL:
+        try:
+            probe.mac_addr.without_probes_recently(probe)
+        except models.WithdrawalThresholdNotReachedError:
+            pass
+    elif probe.mac_addr.state == models.State.POTENTIAL_DEPARTURE:
+        try:
+            probe.mac_addr.departure_threshold(probe)
+        except models.DepartureThreshholdNotReachedError:
+            probe.mac_addr.probe_detected(probe)
+
+    if probe.mac_addr.state == models.State.DEPARTURE:
+        add_departure(probe.mac_addr, probe.time)
+        probe.mac_addr.initial()
+
+    probe.mac_addr.save()
+    probe.save()
+    print("after:", probe.mac_addr.state)
+
+
+def add_arrival(mac: models.WifiInfo, time: timezone.datetime):
+    try:
+        mac.student
+    except ObjectDoesNotExist:
+        print(f"MAC {mac!r} has no student associated with it!")
+        return
+
+    for course in mac.student.courses.all():
+        ongoing = course.is_ongoing()
+        if ongoing:
+            day, start_date, _ = ongoing
+            csa, _ = models.CourseStudentAttendance.objects.get_or_create(
+                student=mac.student, course=course
+            )
+            if not csa.attendance_dates.filter(arrival__range=(start_date, time)):
+                csa.attendance_dates.create(arrival=time, weekday=day)
+
+
+def add_departure(mac: models.WifiInfo, time: timezone.datetime):
+    try:
+        mac.student
+    except ObjectDoesNotExist:
+        print(f"MAC {mac!r} has no student associated with it!")
+        return
+
+    print(f"Add departure for student {mac.student!r}")
+    for course in mac.student.courses.all():
+        ongoing = course.is_ongoing()
+        if ongoing:
+            day, start_date, end_date = ongoing
+            csa, _ = models.CourseStudentAttendance.objects.get_or_create(
+                student=mac.student, course=course
+            )
+            attndncs = csa.attendance_dates.filter(
+                arrival__range=(start_date, end_date),
+                departure=None,
+                weekday_id=day.id
+            )
+            for attendance in attndncs:
+                attendance.departure = time
+                if time < end_date and time < start_date + timezone.timedelta(seconds=course.min_attend_time * 60):
+                    attendance.attended = True
+                attendance.save()
 
 
 @student_required
