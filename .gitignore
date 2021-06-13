@@ -37,6 +37,9 @@ doc/resources/*
 # django jupyter stuff for now
 attendancecontrol/Jupyter/
 
+# ignore transitions
+*_transitions*
+
 #-----------------------------------------------
 
 ## Core latex/pdflatex auxiliary files:
