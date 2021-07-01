@@ -16,7 +16,7 @@ from django_fsm import FSMField, transition
 
 from .base import BaseUpdatingModel
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('control')
 
 class CustomUserManager(BaseUserManager):
     """
@@ -127,7 +127,7 @@ class WifiInfo(BaseUpdatingModel):
         """A probe request from this MAC address source is recieved.
 
         Advance to state 1 (potential arrival)."""
-        print("State.INITIAL -> State.POTENTIAL_ARRIVAL")
+        logger.debug("State.INITIAL -> State.POTENTIAL_ARRIVAL")
         self.latest_recieved_probe_time = probe.time
 
     @transition(field=state, source=State.POTENTIAL_ARRIVAL, target=State.ARRIVAL)
@@ -135,10 +135,10 @@ class WifiInfo(BaseUpdatingModel):
         """A probe request from this MAC address source is detected again.
 
         Advance to ARRIVAL state if the probe came inside the arrival threshold time."""
-        print("State.POTENTIAL_ARRIVAL -> State.ARRIVAL")
+        logger.debug("State.POTENTIAL_ARRIVAL -> State.ARRIVAL")
         arrival_threshold = self.latest_recieved_probe_time + timezone.timedelta(seconds=self.ARRIVAL_THRESHOLD)
         if probe.time > arrival_threshold:
-            print("ArrivalThreshholdExceededError", probe.time, arrival_threshold)
+            logger.debug(f"ArrivalThreshholdExceededError: {probe.time}, {arrival_threshold}")
             raise ArrivalThreshholdExceededError
 
         self.latest_recieved_probe_time = probe.time
@@ -146,13 +146,13 @@ class WifiInfo(BaseUpdatingModel):
     @transition(field=state, source=State.POTENTIAL_ARRIVAL, target=State.INITIAL)
     def withdrawal_threshold(self):
         """The ARRIVAL_THRESHOLD was exceeded. Return to initial state of SM."""
-        print("State.POTENTIAL_ARRIVAL -> State.INITIAL")
+        logger.debug("State.POTENTIAL_ARRIVAL -> State.INITIAL")
         pass
 
     @transition(field=state, source=State.ARRIVAL, target=State.POTENTIAL_DEPARTURE)
     def without_probes_recently(self, probe=None):
         """Check if there were any probes recieved inside the departure threshold."""
-        print("State.ARRIVAL -> State.POTENTIAL_DEPARTURE")
+        logger.debug("State.ARRIVAL -> State.POTENTIAL_DEPARTURE")
         withdrawal_threshold = self.latest_recieved_probe_time + timezone.timedelta(
             seconds=self.mac_burst_interval)
         if probe is None:
@@ -160,7 +160,7 @@ class WifiInfo(BaseUpdatingModel):
         else:
             now = probe.time
         if now < withdrawal_threshold:
-            print("WithdrawalThresholdNotReachedError", now, withdrawal_threshold)
+            logger.debug(f"WithdrawalThresholdNotReachedError, {now}, {withdrawal_threshold}")
             raise WithdrawalThresholdNotReachedError
 
         if probe is not None:
@@ -168,13 +168,13 @@ class WifiInfo(BaseUpdatingModel):
 
     @transition(field=state, source=State.POTENTIAL_DEPARTURE, target=State.ARRIVAL)
     def probe_detected(self, probe):
-        print("State.POTENTIAL_DEPARTURE -> State.ARRIVAL")
+        logger.debug("State.POTENTIAL_DEPARTURE -> State.ARRIVAL")
         self.latest_recieved_probe_time = probe.time
 
     @transition(field=state, source=State.POTENTIAL_DEPARTURE, target=State.DEPARTURE)
     def departure_threshold(self, probe=None):
         """"""
-        print("State.POTENTIAL_DEPARTURE -> State.DEPARTURE")
+        logger.debug("State.POTENTIAL_DEPARTURE -> State.DEPARTURE")
         departure_threshold = self.latest_recieved_probe_time + timezone.timedelta(
             seconds=self.mac_burst_interval // 2)
         if probe is None:
@@ -182,14 +182,14 @@ class WifiInfo(BaseUpdatingModel):
         else:
             now = probe.time
         if now < departure_threshold:
-            print("DepartureThreshholdNotReachedError", now, departure_threshold)
+            logger.debug("DepartureThreshholdNotReachedError", now, departure_threshold)
             raise DepartureThreshholdNotReachedError
         # self.initial()
 
     @transition(field=state, source=State.DEPARTURE, target=State.INITIAL)
     def initial(self):
         """User has departed. Return to initial state."""
-        print("State.DEPARTURE -> State.INITIAL")
+        logger.debug("State.DEPARTURE -> State.INITIAL")
         pass
 
     def __str__(self):
