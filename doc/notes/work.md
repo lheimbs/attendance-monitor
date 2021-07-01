@@ -40,6 +40,10 @@ rssi baseline erstellen nach path-loss-model:
 # L. Oliveiraet al.: Mobile Device Detection Through WiFi Probe Request Analysis
 
 
+# de-randomization
+Reversing randomization of probe-request mac addresses mostly done through collection->analysis
 
-
-
+# MAC anonymization
+Not possible due to the need to match users given info (-> MAC Addr.) with collected info (-> Probe Req) ?
+Some way of anonymized fingerprinting?
+just password-like hashing?
