@@ -166,18 +166,35 @@ REST_FRAMEWORK = {
     ]
 }
 
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': True,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'root': {
-#         'handlers': ['console'],
-#         'level': 'WARNING',
-#     },
-# }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'attmon_debug.log',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'control': {
+            'handlers': ['console']
+        }
+    }
+}
 
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField' 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

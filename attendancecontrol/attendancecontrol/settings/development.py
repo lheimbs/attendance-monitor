@@ -25,8 +25,11 @@ DATABASES = {
     # },
 }
 
-# LOGGING['disable_existing_loggers'] = True
 # LOGGING['root'] = {
 #     'handlers': ['console'],
-#     'level': 'DEBUG',
+#     # 'level': 'DEBUG',
 # }
+LOGGING['loggers']['control'] = {
+    'handlers': ['file'],
+    'level': 'DEBUG',
+}
