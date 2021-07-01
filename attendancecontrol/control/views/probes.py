@@ -1,3 +1,4 @@
+import logging
 import operator
 import statistics
 from functools import reduce
@@ -19,15 +20,20 @@ from .. import utils
 from ..decorators import student_required
 from ..serializers import ProbeRequestSerializer
 
+logger = logging.getLogger('control')
 
 @api_view(['POST'])
 def incoming_probe_view(request):
-    print("ADD")
     if request.method == 'POST':
         serializer = ProbeRequestSerializer(data=request.data.dict())
         if serializer.is_valid():
+            check_for_departure()
+
             probe = serializer.save()
-            consume_probe(probe)
+            logger.debug(f'ADD {probe.mac}: {probe.time}')
+            if models.WifiInfo.objects.filter(mac=probe.mac).exists():
+                # Only consume probes for registered macs.
+                consume_probe(probe)
             return Response(status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response(status=status.HTTP_403_FORBIDDEN)
@@ -36,13 +42,22 @@ def incoming_probe_view(request):
 # TODO: Add identifyer to track correlating arrival/departure cycles
 
 
+def check_for_departure():
+    """Get all macs that are in ARRIVAL state and have a student and check for potential departure."""
+    for mac in models.WifiInfo.objects.filter(state=models.State.ARRIVAL).exclude(student=None):
+        try:
+            mac.without_probes_recently()
+        except models.WithdrawalThresholdNotReachedError:
+            pass
+
+
 def consume_probe(probe: models.ProbeRequest) -> None:  # noqa C901
     if not probe.mac_addr:
         w_info, _ = models.WifiInfo.objects.get_or_create(mac=probe.mac)
         probe.mac_addr = w_info
         probe.save()
 
-    print("previous:", probe.mac_addr.state)
+    logger.debug("previous: {}".format(probe.mac_addr.state))
     if probe.mac_addr.state == models.State.INITIAL:
         probe.mac_addr.initial_probe_detected(probe)
     elif probe.mac_addr.state == models.State.POTENTIAL_ARRIVAL:
@@ -68,14 +83,14 @@ def consume_probe(probe: models.ProbeRequest) -> None:  # noqa C901
 
     probe.mac_addr.save()
     probe.save()
-    print("after:", probe.mac_addr.state)
+    logger.debug("after: {}".format(probe.mac_addr.state))
 
 
 def add_arrival(mac: models.WifiInfo, time: timezone.datetime):
     try:
         mac.student
     except ObjectDoesNotExist:
-        print(f"MAC {mac!r} has no student associated with it!")
+        logger.warning(f"MAC {mac!r} has no student associated with it!")
         return
 
     for course in mac.student.courses.all():
@@ -93,10 +108,10 @@ def add_departure(mac: models.WifiInfo, time: timezone.datetime):
     try:
         mac.student
     except ObjectDoesNotExist:
-        print(f"MAC {mac!r} has no student associated with it!")
+        logger.warning(f"MAC {mac!r} has no student associated with it!")
         return
 
-    print(f"Add departure for student {mac.student!r}")
+    logger.debug(f"Add departure for student {mac.student!r}")
     for course in mac.student.courses.all():
         ongoing = course.is_ongoing()
         if ongoing:
