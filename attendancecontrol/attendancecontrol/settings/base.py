@@ -16,6 +16,8 @@ https://www.digitalocean.com/community/tutorials/how-to-harden-your-production-d
 
 import os
 from pathlib import Path
+from datetime import datetime
+
 from django.contrib.messages import constants as messages
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -133,6 +135,7 @@ LOGOUT_REDIRECT_URL = 'home'
 
 LANGUAGE_CODE = 'de-de'
 
+# TIME_ZONE = 'UTC'
 TIME_ZONE = 'Europe/Berlin'
 
 USE_I18N = True
@@ -182,7 +185,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'attmon_debug.log',
+            'filename': 'attmon_debug_{:%Y-%m-%d}.log'.format(datetime.now()),
             'formatter': 'verbose',
         },
     },

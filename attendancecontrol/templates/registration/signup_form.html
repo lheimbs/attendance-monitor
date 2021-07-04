@@ -10,6 +10,7 @@
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ next }}">
         {{ form|crispy }}
+        <p>Do you need help with your MAC-Address? Are you an Apple user? Check <a href="https://support.apple.com/en-us/HT211227">here</a> for more info.</p>
         <button type="submit" class="btn btn-success">Sign up</button>
       </form>
     </div>

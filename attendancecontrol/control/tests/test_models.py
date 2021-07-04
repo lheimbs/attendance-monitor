@@ -249,7 +249,10 @@ class CourseModelTests(TestCase):
 class StudentModelTests(TestCase):
     def test_student_model_str_function(self):
         student = create_student()
-        self.assertEqual(str(student), f"user: {student.user}, stud.nr {student.student_nr}, mac: {student.wifi_info.mac}")
+        self.assertEqual(
+            str(student),
+            f"user: {student.user}, stud.nr {student.student_nr}, mac: {student.wifi_info.mac}"
+        )
 
 
 class TeacherModelTests(TestCase):

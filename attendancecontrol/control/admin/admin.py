@@ -59,7 +59,7 @@ class StudentAdmin(admin.ModelAdmin):
 @admin.register(models.WifiInfo)
 class WifiInfoAdmin(admin.ModelAdmin):
     model = models.WifiInfo
-    list_display = ('mac', 'modified', 'mac_burst_interval', 'mac_burst_count')
+    list_display = ('mac', 'modified', 'burst_interval', 'burst_count')
 
 
 admin.site.register((models.WeekDay, models.AccessToken, models.CourseStudentAttendance))

@@ -10,7 +10,6 @@ from django.db.models import Q
 from django.http.response import JsonResponse
 from django.utils import timezone
 from django.db.models.query import QuerySet
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -30,9 +29,16 @@ def incoming_probe_view(request):
             check_for_departure()
 
             probe = serializer.save()
-            logger.debug(f'ADD {probe.mac}: {probe.time}')
             if models.WifiInfo.objects.filter(mac=probe.mac).exists():
-                # Only consume probes for registered macs.
+                #  and probe.mac == models.Student.objects.get(user__email='l@lfs.de').wifi_info.mac:
+                # Only consume probes for registered macs
+                w_info = models.WifiInfo.objects.get(mac=probe.mac)
+                probe.mac_addr = w_info
+                probe.save()
+
+                update_burst_interval_variance(probe)
+
+                logger.debug(f'ADD {probe.mac}: {probe.time}')
                 consume_probe(probe)
             return Response(status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -41,94 +47,111 @@ def incoming_probe_view(request):
 
 # TODO: Add identifyer to track correlating arrival/departure cycles
 
-
 def check_for_departure():
     """Get all macs that are in ARRIVAL state and have a student and check for potential departure."""
+    for mac in models.WifiInfo.objects.filter(state=models.State.POTENTIAL_DEPARTURE).exclude(student=None):
+        try:
+            mac.departure_threshold()
+            mac.save()
+            logger.debug(f"{mac!r}: State.POTENTIAL_DEPARTURE -> State.DEPARTURE")
+        except models.DepartureThreshholdNotReachedError:
+            pass
     for mac in models.WifiInfo.objects.filter(state=models.State.ARRIVAL).exclude(student=None):
         try:
             mac.without_probes_recently()
+            mac.save()
+            logger.debug(f"{mac!r}: State.ARRIVAL -> State.POTENTIAL_DEPARTURE")
         except models.WithdrawalThresholdNotReachedError:
             pass
 
 
 def consume_probe(probe: models.ProbeRequest) -> None:  # noqa C901
-    if not probe.mac_addr:
-        w_info, _ = models.WifiInfo.objects.get_or_create(mac=probe.mac)
-        probe.mac_addr = w_info
-        probe.save()
+    logger.debug(f"{probe!r}: intial state: {probe.mac_addr.state}")
 
-    logger.debug("previous: {}".format(probe.mac_addr.state))
     if probe.mac_addr.state == models.State.INITIAL:
         probe.mac_addr.initial_probe_detected(probe)
+        logger.debug(f"{probe!r}: State.INITIAL -> State.POTENTIAL_ARRIVAL")
+
     elif probe.mac_addr.state == models.State.POTENTIAL_ARRIVAL:
         try:
             probe.mac_addr.arrival_threshold(probe)
-            add_arrival(probe.mac_addr, probe.time)
+            logger.debug(f"{probe!r}: State.POTENTIAL_ARRIVAL -> State.ARRIVAL")
+            # add_arrival(probe.mac_addr, probe.time)
         except models.ArrivalThreshholdExceededError:
-            probe.mac_addr.withdrawal_threshold()
+            probe.mac_addr.arrival_threshold_exceeded()
+            logger.debug(
+                f"{probe!r}: ArrivalThreshholdExceededError: "
+                "State.POTENTIAL_ARRIVAL -> State.INITIAL"
+            )
+
     elif probe.mac_addr.state == models.State.ARRIVAL:
         try:
             probe.mac_addr.without_probes_recently(probe)
+            logger.debug(f"{probe!r}: State.ARRIVAL -> State.POTENTIAL_DEPARTURE")
         except models.WithdrawalThresholdNotReachedError:
-            pass
+            logger.debug(f"{probe!r}: WithdrawalThresholdNotReachedError")
+
     elif probe.mac_addr.state == models.State.POTENTIAL_DEPARTURE:
         try:
             probe.mac_addr.departure_threshold(probe)
+            logger.debug(f"{probe!r}: State.POTENTIAL_DEPARTURE -> State.DEPARTURE")
         except models.DepartureThreshholdNotReachedError:
             probe.mac_addr.probe_detected(probe)
+            logger.debug(
+                f"{probe!r}: DepartureThreshholdNotReachedError: "
+                "State.POTENTIAL_DEPARTURE -> State.ARRIVAL"
+            )
 
     if probe.mac_addr.state == models.State.DEPARTURE:
-        add_departure(probe.mac_addr, probe.time)
+        # add_departure(probe.mac_addr, probe.time)
         probe.mac_addr.initial()
+        logger.debug(f"{probe!r}: State.DEPARTURE -> State.INITIAL")
 
     probe.mac_addr.save()
     probe.save()
     logger.debug("after: {}".format(probe.mac_addr.state))
 
 
-def add_arrival(mac: models.WifiInfo, time: timezone.datetime):
-    try:
-        mac.student
-    except ObjectDoesNotExist:
-        logger.warning(f"MAC {mac!r} has no student associated with it!")
+def update_burst_interval_variance(probe: models.ProbeRequest):
+    # Have we recorded any probes before?
+    if probe.mac_addr.burst_count == 0:
+        logger.debug(f"First recieved probe or mac {probe.mac_addr!r}")
+        probe.mac_addr.burst_count = 1
+        probe.mac_addr.burst_update = probe.time
+        probe.mac_addr.save()
         return
 
-    for course in mac.student.courses.all():
-        ongoing = course.is_ongoing()
-        if ongoing:
-            day, start_date, _ = ongoing
-            csa, _ = models.CourseStudentAttendance.objects.get_or_create(
-                student=mac.student, course=course
-            )
-            if not csa.attendance_dates.filter(arrival__range=(start_date, time)):
-                csa.attendance_dates.create(arrival=time, weekday=day)
-
-
-def add_departure(mac: models.WifiInfo, time: timezone.datetime):
-    try:
-        mac.student
-    except ObjectDoesNotExist:
-        logger.warning(f"MAC {mac!r} has no student associated with it!")
+    last_probe = models.ProbeRequest.objects.filter(mac=probe.mac).last()
+    if not last_probe:
+        logger.error(f"No previous probe recorded for mac {probe.mac_addr!r}")
         return
 
-    logger.debug(f"Add departure for student {mac.student!r}")
-    for course in mac.student.courses.all():
-        ongoing = course.is_ongoing()
-        if ongoing:
-            day, start_date, end_date = ongoing
-            csa, _ = models.CourseStudentAttendance.objects.get_or_create(
-                student=mac.student, course=course
-            )
-            attndncs = csa.attendance_dates.filter(
-                arrival__range=(start_date, end_date),
-                departure=None,
-                weekday_id=day.id
-            )
-            for attendance in attndncs:
-                attendance.departure = time
-                if time < end_date and time < start_date + timezone.timedelta(seconds=course.min_attend_time * 60):
-                    attendance.attended = True
-                attendance.save()
+    if timezone.is_naive(last_probe.time):
+        last_probe.time = timezone.get_current_timezone().localize(last_probe.time)
+        last_probe.save()
+
+    logger.debug(f"probe {probe.time}, last: {last_probe.time}")
+    time_diff = (probe.time - last_probe.time).total_seconds()
+    if time_diff < 1:
+        logger.debug(f"Probe is part of burst. Skipping interval calculation. {probe!r}")
+        return
+
+    logger.debug(
+        f"Previous: interval={probe.mac_addr.burst_interval}, variance={probe.mac_addr.burst_variance}, "
+        f"count={probe.mac_addr.burst_count}"
+    )
+    prev_interval = probe.mac_addr.burst_interval
+    probe.mac_addr.burst_count += 1
+    probe.mac_addr.burst_interval = prev_interval \
+        + (time_diff - prev_interval) / probe.mac_addr.burst_count
+    probe.mac_addr.burst_variance = probe.mac_addr.burst_variance \
+        + (time_diff - probe.mac_addr.burst_interval) * (time_diff - prev_interval)
+    probe.mac_addr.burst_update = probe.time
+    probe.mac_addr.save()
+    logger.debug(
+        f"After: interval={probe.mac_addr.burst_interval}, variance={probe.mac_addr.burst_variance}, "
+        f"count={probe.mac_addr.burst_count}"
+    )
 
 
 @student_required
@@ -150,6 +173,14 @@ def get_students_attendance_currently_ongoing(request):
             })
             print(course.name, student.wifi_info.mac if student.wifi_info else '', probes)
     return JsonResponse(attendance)
+
+
+@student_required
+def get_student_attendance(request, course_pk, week_nr):
+    student = request.user.student
+    course = student.courses.get(pk=course_pk)
+
+
 
 
 @student_required
@@ -194,14 +225,14 @@ def update_burst_interval(student: models.Student,
         ret_val = 0
     else:
         # Calculate the mean probe burst interval
-        if student.wifi_info.mac_burst_count == 0:
+        if student.wifi_info.burst_count == 0:
             interval = statistics.mean(deltas)
             probes_count = len(deltas)
             ret_val = 1
         else:
             # See incremental averaging: https://math.stackexchange.com/a/106720
             old_interval = interval
-            count = student.wifi_info.mac_burst_count
+            count = student.wifi_info.burst_count
             for delta in deltas:
                 count += 1
                 new_interval = old_interval + (delta-old_interval) / count
@@ -238,7 +269,7 @@ def get_missing_dates(last_update: datetime, query_date: datetime, student: mode
 
 
 def update_student_burst_info(student: models.Student) -> None:
-    """ Set/Update a students mac_burst_interval average.
+    """ Set/Update a students burst_interval average.
 
     Update a students burst interval at max once daily,
     by getting all date ranges in which the students courses are ongoing,
@@ -247,19 +278,18 @@ def update_student_burst_info(student: models.Student) -> None:
     The one second cut-off is used to distinguish between probes sent in a burst
     (which are not of interest) and the time between such bursts.
     """
-    latest_update = student.wifi_info.mac_burst_updated  # - timezone.timedelta(days=7)
+    latest_update = student.wifi_info.burst_updated  # - timezone.timedelta(days=7)
     if latest_update is None:
-        latest_update = timezone.make_aware(
+        latest_update = timezone.get_current_timezone().localize(
             models.ProbeRequest.objects.first().time,
-            timezone.get_current_timezone()
         )
     if latest_update and latest_update > timezone.now().replace(hour=0, minute=0, second=0, microsecond=0):
         # update at most once daily
         return
 
     query_date = timezone.now()
-    interval = student.wifi_info.mac_burst_interval
-    count = student.wifi_info.mac_burst_count
+    interval = student.wifi_info.burst_interval
+    count = student.wifi_info.burst_count
     dates = get_missing_dates(latest_update, query_date, student)
     for date in dates.list:
         missed_probes = models.ProbeRequest.objects.filter(
@@ -276,9 +306,9 @@ def update_student_burst_info(student: models.Student) -> None:
                 "count:", count
             )
 
-            student.wifi_info.mac_burst_interval = interval
-            student.wifi_info.mac_burst_count = count
-            student.wifi_info.mac_burst_updated = query_date
+            student.wifi_info.burst_interval = interval
+            student.wifi_info.burst_count = count
+            student.wifi_info.burst_updated = query_date
             student.wifi_info.save()
 
 

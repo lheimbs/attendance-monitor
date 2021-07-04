@@ -9,4 +9,5 @@ class ProbeRequestSerializer(serializers.ModelSerializer):
         fields = ['time', 'mac', 'vendor', 'ssid', 'rssi', 'raw']
 
     def create(self, validated_data):
+        print('probe:', validated_data)
         return models.ProbeRequest.objects.create(**validated_data)

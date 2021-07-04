@@ -4,26 +4,30 @@
 <h1>{{ course.name }}</h1>
 <div class="row">
     <div class="row">
-        <ul class="list-group list-group-flush">
+        <ul class="list-group list-group-flush" data-course-id="{{ course.pk }}">
             <li class="list-group-item">Duration: {{ course.duration }}min</li>
             <li class="list-group-item">Required time to count as attended: {{ course.min_attend_time }}min</li>
-            <li class="list-group-item d-flex text-center flex-wrap">
-            {% for day in course.sorted_start_times_set %}
-                <div class="card p-0 gx-1 weekday-display-container">
-                    <div class="card-header p-1">{{ day.get_day_display }}</div>
-                    <div class="card-body p-1">{{ day.time|time:"H:i" }}</div>
-                </div>
-            {% empty %}
-                No times registered for this course...
-            {% endfor %}
+            <li class="list-group-item" id="student-course-shown-week-nr">Week #{{ week_nr }}</li>
+            <li class="list-group-item d-flex text-center flex-wrap" id="student-course-shown-days">
+            {# <div class="row justify-content-space-between"> #}
+                <a class="btn btn-secondary col- prev-week-btn" href="#">&lt;</a>
+                {% for day in course.sorted_start_times_set %}
+                    <div class="card p-0 gx-1 weekday-display-container">
+                        <div class="card-header p-1">{{ day.get_day_display }}</div>
+                        <div class="card-body p-1">{{ day.time|time:"H:i" }}</div>
+                    </div>
+                {% empty %}
+                    No times registered for this course...
+                {% endfor %}
+                <a class="btn btn-secondary col-">&gt;</a>
+            {# </div>             #}
             </li>
         </ul>
         {% if course.is_ongoing %}
-            <p>Course is currently ongoing. Join <a href="#">here</a></p>
+            <p>Course is currently ongoing...</p>
         {% endif %}
-        <a href="{{ course.get_absolute_student_leave_url }}" class="btn btn-primary m-1 btn-sm">Leave Course</a>
     </div>
-    <div id="probes-graph-container" class="row" data-course-id="{{ course.pk }}" data-url="{% url 'probes:student_course_graph' course_pk=course.pk %}">
+    <div id="probes-graph-container" class="row" data-url="{% url 'probes:student_course_graph' course_pk=course.pk %}">
         <div class="d-flex justify-content-center">
             <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -31,10 +35,14 @@
             <P class="mx-5">Loading probes graph...</P>
         </div>
     </div>
+    <div class="row">
+        <a href="{{ course.get_absolute_student_leave_url }}" class="btn btn-primary m-1 btn-sm">Leave Course</a>
+    </div>
 </div>
 {% endblock %}
 
 {% block javascript %}
 {% load static %}
 <script src="{% static 'control/course_graph.js' %}" type="text/javascript"></script>
+<script src="{% static 'control/student_attendance.js' %}" type="text/javascript"></script>
 {% endblock %}

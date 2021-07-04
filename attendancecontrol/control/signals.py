@@ -18,4 +18,4 @@ def update_students_burst(sender, user, request, **kwargs):
         update_student_burst_info(user.student)
 
 
-user_logged_in.connect(update_students_burst)
+# user_logged_in.connect(update_students_burst)

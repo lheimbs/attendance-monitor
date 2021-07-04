@@ -5,3 +5,31 @@
     width: 13rem;
     font-size: 0.8rem !important;
 }
+
+.student-day-row {
+    flex-wrap: nowrap !important;
+    overflow-x: scroll;
+}
+
+.student-day-card {
+    border: 1px;
+    border-radius: 5px;
+    margin: 0.2rem;
+}
+
+.student-day-card > ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.student-day-card-header {
+
+}
+
+.student-day-card-current {
+
+}
+
+.prev-week-btn {
+    margin-right: 1rem;
+}

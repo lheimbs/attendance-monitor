@@ -81,11 +81,12 @@ class StudentCourseDetail(DetailView):
     context_object_name = 'course'
     template_name = 'control/students/course.html'
 
-    # def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-    #     ctx = super().get_context_data(**kwargs)
-    #     graph = probes.get_students_probe_records(self.request.user.student, self.object)
-    #     ctx['graph'] = graph
-    #     return ctx
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        # graph = probes.get_students_probe_records(self.request.user.student, self.object)
+        # ctx['graph'] = graph
+        ctx['week_nr'] = timezone.localtime().isocalendar()[1]
+        return ctx
 
     def get_queryset(self):
         return self.request.user.student.courses.all()

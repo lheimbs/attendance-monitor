@@ -70,6 +70,61 @@ class TeacherCourseDetail(DetailView):
     def get_queryset(self):
         return self.request.user.teacher.courses.all()
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['attendance'] = get_course_attendance_data(self.object)
+        return ctx
+
+
+def get_course_dates(course: Course) -> dict:
+    next_week = timezone.timedelta(days=7)
+    days = {}
+    for day in course.sorted_start_times_set:
+        start_date = course.start_date
+        end_date = course.end_date if course.end_date < timezone.localtime() else timezone.localtime()
+        day_times = []
+        while start_date < end_date:
+            day_times.append(day.get_this_weeks_date(start_date))
+            start_date += next_week
+        days[day] = day_times
+    return days
+
+
+def get_course_attendance_data(course: Course) -> dict:
+    days = get_course_dates(course)
+    stud_attendance = []
+    for csa in course.coursestudentattendance_set.order_by('student__user__last_name').all():
+        stud_days = []
+        for day, start_times in days.items():
+            stud_attends = []
+            for start in start_times:
+                end = start + timezone.timedelta(seconds=course.duration*60)
+                min_start = start.replace(hour=6, minute=0, second=0, microsecond=0)
+                max_start = end - timezone.timedelta(seconds=course.min_attend_time)
+                ex_arrival = csa.attendance_dates.filter(arrival__range=[min_start, max_start])
+                time_attended = 0
+                for ar in ex_arrival:
+                    ar_start = start if start > ar.arrival else ar.arrival
+                    departure = ar.departure if ar.departure else timezone.localtime()
+                    ar_end = end if end < departure else departure
+                    time_attended += (ar_end - ar_start).total_seconds()
+                status = time_attended / course.min_attend_time * 60
+                if status >= 1:
+                    status = 'success'
+                elif 0.5 >= status > 1:
+                    status = 'warning'
+                else:
+                    status = 'danger'
+                stud_attends.append((start, time_attended, status))
+            stud_days.append({'name': day.get_day_display(), 'time': day.time.strftime('%H:%M'), 'attendances': stud_attends})
+        stud_attendance.append({
+            'email': csa.student.user.email,
+            'name': csa.student.user.get_full_name(),
+            'mat_nr': csa.student.student_nr,
+            'days': stud_days
+        })
+    return stud_attendance
+
 
 @method_decorator([login_required, teacher_required], name='dispatch')
 class TeacherAdditionalCourseDetail(DetailView):

@@ -5,8 +5,8 @@
 <span id="course-status-url" class="visually-hidden" data-course-status-url="{% url 'student:courses_status' %}"></span>
 
 <div class="row">
-    <div class="col">Your <b>mac_burst_interval</b>: {{ user.student.wifi_info.mac_burst_interval|floatformat }} seconds</div>
-    <div class="col">Calculated from {{user.student.wifi_info.mac_burst_count }} recieved probe requests.</div>
+    <div class="col">Your <b>burst_interval</b>: {{ user.student.wifi_info.burst_interval|floatformat }} seconds</div>
+    <div class="col">Calculated from {{user.student.wifi_info.burst_count }} recieved probe requests.</div>
 </div>
 
 <div class="jumbotron py-2">

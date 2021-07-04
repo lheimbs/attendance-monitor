@@ -2,7 +2,7 @@
 {% block content %}
 <div class="jumbotron">
     <div class="row">
-        <h2 class="col">Course {{ course.name }}</h2>
+        <h2 class="col">Course: {{ course.name }}</h2>
         <a href="{% url 'teacher:enable_course' course.id %}" class="col-md-auto btn btn-primary">Enable registration</a>
     </div>
     <hr class="mt-0 mb-4">
@@ -12,12 +12,39 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-6">
-            {% for student in course.student_set.all %}
-                <p>{{ student.user }} - Mat. Nr.: {{ student.student_nr }}</p>
-            {% empty %}
-                No students registered yet for this course
-            {% endfor %}
+        <div class="col">
+            <div class="row">
+                {% for student_data in attendance %}
+                    <a class="btn btn-light" data-bs-toggle="collapse" href="#student-{{ student_data.mat_nr }}" role="button" aria-expanded="false" aria-controls="collapseExample">
+                        {{ student_data.name }} (E-Mail: {{ student_data.email }}, Mat.-Nr.: {{ student_data.mat_nr }})
+                    </a>
+                    <div class="collapse" id="student-{{ student_data.mat_nr }}">
+                        <div class="card card-body">
+                            {% for day in student_data.days %}
+                            <div class="row student-day-row">
+                                <div class="student-day-card bg-info col">
+                                    <ul>
+                                        <li>{{ day.name }}</li>
+                                        <li>{{ day.time }}</li>
+                                    </ul>
+                                </div>
+                                {% for attend_rec in day.attendances reversed %}
+                                {% if forloop.first %}
+                                <div class="student-day-card student-day-card-current col bg-{{ attend_rec.2 }}">
+                                {% else %}
+                                <div class="student-day-card col bg-{{ attend_rec.2 }}">
+                                {% endif %}
+                                    <p>{{ attend_rec.0|date:'d.m.Y' }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% empty %}
+                    No students registered yet for this course
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>

@@ -132,8 +132,7 @@ def get_students_last_burst_update(student: Student) -> datetime:
     """Get the last time a students burst interval was updated"""
     last_update = student.wifi_info.mac_burst_updated
     if last_update is None:
-        last_update = timezone.make_aware(
-            ProbeRequest.objects.first().time,
-            timezone.get_current_timezone()
+        last_update = timezone.get_current_timezone().localize(
+            ProbeRequest.objects.first().time
         )
     return last_update

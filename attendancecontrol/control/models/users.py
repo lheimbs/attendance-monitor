@@ -8,6 +8,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import ugettext_lazy as _
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.exceptions import ObjectDoesNotExist
 
 from macaddress.fields import MACAddressField
 from macaddress import default_dialect
@@ -110,9 +111,10 @@ class State:
 
 class WifiInfo(BaseUpdatingModel):
     mac = MACAddressField(null=True, unique=True, integer=False)
-    mac_burst_interval = models.FloatField(default=60*60)   # one hour default
-    mac_burst_count = models.PositiveIntegerField(default=0)
-    mac_burst_updated = models.DateTimeField(blank=True, null=True)
+    burst_interval = models.FloatField(default=60*60, db_column='mac_burst_interval')   # 30 minutes default
+    burst_variance = models.FloatField(default=15*60, db_column='mac_burst_variance')   # 15 minutes default
+    burst_count = models.PositiveIntegerField(default=0, db_column='mac_burst_count')
+    burst_updated = models.DateTimeField(blank=True, null=True, db_column='mac_burst_updated')
 
     ARRIVAL_THRESHOLD = 60   # sixty seconds constant to differentiate probe bursts
     latest_recieved_probe_time = models.DateTimeField(blank=True, null=True)
@@ -120,14 +122,12 @@ class WifiInfo(BaseUpdatingModel):
                      choices=State.CHOICES,
                      default=State.INITIAL_STATE,
                      protected=True)
-    arrival_slot = models.JSONField(null=False, default=list, encoder=DjangoJSONEncoder)
 
     @transition(field=state, source=State.INITIAL, target=State.POTENTIAL_ARRIVAL)
     def initial_probe_detected(self, probe):
         """A probe request from this MAC address source is recieved.
 
         Advance to state 1 (potential arrival)."""
-        logger.debug("State.INITIAL -> State.POTENTIAL_ARRIVAL")
         self.latest_recieved_probe_time = probe.time
 
     @transition(field=state, source=State.POTENTIAL_ARRIVAL, target=State.ARRIVAL)
@@ -135,32 +135,28 @@ class WifiInfo(BaseUpdatingModel):
         """A probe request from this MAC address source is detected again.
 
         Advance to ARRIVAL state if the probe came inside the arrival threshold time."""
-        logger.debug("State.POTENTIAL_ARRIVAL -> State.ARRIVAL")
         arrival_threshold = self.latest_recieved_probe_time + timezone.timedelta(seconds=self.ARRIVAL_THRESHOLD)
         if probe.time > arrival_threshold:
-            logger.debug(f"ArrivalThreshholdExceededError: {probe.time}, {arrival_threshold}")
             raise ArrivalThreshholdExceededError
 
         self.latest_recieved_probe_time = probe.time
+        add_arrival(self, probe.time)
 
     @transition(field=state, source=State.POTENTIAL_ARRIVAL, target=State.INITIAL)
-    def withdrawal_threshold(self):
+    def arrival_threshold_exceeded(self):
         """The ARRIVAL_THRESHOLD was exceeded. Return to initial state of SM."""
-        logger.debug("State.POTENTIAL_ARRIVAL -> State.INITIAL")
         pass
 
     @transition(field=state, source=State.ARRIVAL, target=State.POTENTIAL_DEPARTURE)
     def without_probes_recently(self, probe=None):
         """Check if there were any probes recieved inside the departure threshold."""
-        logger.debug("State.ARRIVAL -> State.POTENTIAL_DEPARTURE")
         withdrawal_threshold = self.latest_recieved_probe_time + timezone.timedelta(
-            seconds=self.mac_burst_interval)
+            seconds=self.burst_interval)
         if probe is None:
             now = timezone.now()
         else:
             now = probe.time
         if now < withdrawal_threshold:
-            logger.debug(f"WithdrawalThresholdNotReachedError, {now}, {withdrawal_threshold}")
             raise WithdrawalThresholdNotReachedError
 
         if probe is not None:
@@ -168,32 +164,75 @@ class WifiInfo(BaseUpdatingModel):
 
     @transition(field=state, source=State.POTENTIAL_DEPARTURE, target=State.ARRIVAL)
     def probe_detected(self, probe):
-        logger.debug("State.POTENTIAL_DEPARTURE -> State.ARRIVAL")
         self.latest_recieved_probe_time = probe.time
 
     @transition(field=state, source=State.POTENTIAL_DEPARTURE, target=State.DEPARTURE)
     def departure_threshold(self, probe=None):
         """"""
-        logger.debug("State.POTENTIAL_DEPARTURE -> State.DEPARTURE")
         departure_threshold = self.latest_recieved_probe_time + timezone.timedelta(
-            seconds=self.mac_burst_interval // 2)
+            seconds=self.burst_interval // 2)
         if probe is None:
-            now = timezone.now()
+            now = timezone.localtime()
         else:
             now = probe.time
         if now < departure_threshold:
-            logger.debug("DepartureThreshholdNotReachedError", now, departure_threshold)
             raise DepartureThreshholdNotReachedError
-        # self.initial()
+
+        add_departure(self, now)
 
     @transition(field=state, source=State.DEPARTURE, target=State.INITIAL)
     def initial(self):
         """User has departed. Return to initial state."""
-        logger.debug("State.DEPARTURE -> State.INITIAL")
         pass
 
     def __str__(self):
         return self.mac.format(default_dialect())
+
+
+def add_arrival(mac: WifiInfo, time: timezone.datetime):
+    try:
+        mac.student
+    except ObjectDoesNotExist:
+        logger.warning(f"MAC {mac!r} has no student associated with it!")
+        return
+
+    logger.debug(f"Try to add arrival for student {mac.student!r}")
+    for course in mac.student.courses.all():
+        csa, _ = course.coursestudentattendance_set.get_or_create(student=mac.student)
+        existing_record = csa.attendance_dates.filter(departure=None)
+        if not existing_record:
+            csa.attendance_dates.create(arrival=time)
+            logger.debug(f"{mac!r}: Create Arrival at {time}")
+        else:
+            logger.debug(f"{mac!r}: Arrival already registered: {existing_record}")
+
+
+def add_departure(mac: WifiInfo, time: timezone.datetime):
+    try:
+        mac.student
+    except ObjectDoesNotExist:
+        logger.warning(f"MAC {mac!r} has no student associated with it!")
+        return
+
+    logger.debug(f"Try to add departure for student {mac.student!r}")
+    for course in mac.student.courses.all():
+        csa, _ = course.coursestudentattendance_set.get_or_create(student=mac.student)
+        existing_record = csa.attendance_dates.filter(departure=None)
+        for attendance in existing_record:
+            attendance.departure = time
+            for day in course.start_times.all():
+                course_start_time = day.get_this_weeks_date()
+                course_end_time = course_start_time + timezone.timedelta(seconds=course.duration*60)
+                start = course_start_time if course_start_time > attendance.arrival else attendance.arrival
+                end = time if time < course_end_time else course_end_time
+                time_present = end - start
+                if time_present.total_seconds() > 0 and time_present.seconds <= course.duration*60:
+                    attendance.time_present += time_present.seconds
+            # if time < attendance.arrival + timezone.timedelta(seconds=course.min_attend_time * 60):
+            #     attendance.attended =
+            attendance.save()
+            logger.debug(f"{mac!r}: Add departure at {time} for student {mac.student} and course {course}.")
+            logger.debug(f"{mac!r}: {attendance!r}")
 
 
 class Teacher(BaseUpdatingModel):
