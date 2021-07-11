@@ -1,12 +1,12 @@
 
 $(document).ready(function(){
-    const chatSocket = new WebSocket(
+    const statusSocket = new WebSocket(
         'ws://'
         + window.location.host
         + '/ws/probes/status/course/'
     );
 
-    chatSocket.onmessage = function(e) {
+    statusSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         for (course_id in data) {
             if (data[course_id]) {
@@ -22,14 +22,14 @@ $(document).ready(function(){
         }
     };
 
-    chatSocket.onclose = function(e) {
+    statusSocket.onclose = function(e) {
         setTimeout(setCourseStatusUnknown, 1000);
     };
 
-    chatSocket.addEventListener('open', function (event) {
+    statusSocket.addEventListener('open', function (event) {
         setInterval(function(){
-            chatSocket.send(JSON.stringify({'get': true}));
-        }, 30000); // 30 sec
+            statusSocket.send(JSON.stringify({'get': true}));
+        }, 3000); // 30 sec
     });
 });
 

@@ -4,29 +4,75 @@
 <h1>{{ course.name }}</h1>
 <div class="row">
     <div class="row">
-        <ul class="list-group list-group-flush" data-course-id="{{ course.pk }}">
+        <ul class="list-group list-group-flush">
             <li class="list-group-item">Duration: {{ course.duration }}min</li>
             <li class="list-group-item">Required time to count as attended: {{ course.min_attend_time }}min</li>
-            <li class="list-group-item" id="student-course-shown-week-nr">Week #{{ week_nr }}</li>
-            <li class="list-group-item d-flex text-center flex-wrap" id="student-course-shown-days">
-            {# <div class="row justify-content-space-between"> #}
-                <a class="btn btn-secondary col- prev-week-btn" href="#">&lt;</a>
-                {% for day in course.sorted_start_times_set %}
-                    <div class="card p-0 gx-1 weekday-display-container">
-                        <div class="card-header p-1">{{ day.get_day_display }}</div>
-                        <div class="card-body p-1">{{ day.time|time:"H:i" }}</div>
+            <li class="list-group-item">
+                {% if not course.is_ongoing %}<p id="student-course-not-active" class="mb-0">Course is currently not active...</p>{% endif %}
+                <div id="student-course-active" data-course-id="{{ course.pk }}" class="{{ course.is_ongoing|yesno:",visually-hidden" }}">
+                    <p>Course is currently ongoing... Your presence is detected for <span id="student-course-active-minutes">{{ current_present|floatformat }}</span> minutes.</p>
+                    <div class="progress mb-1">
+                        <div class="progress-bar" style="width: {{ min_attendance_percent }}%;" role="progressbar" aria-valuenow="{{ min_attendance_percent }}" aria-valuemin="0" aria-valuemax="{{ max_percent }}">
+                            {{ course.min_attend_time }}minutes required ({{ min_attendance_percent }}%)
+                        </div>
                     </div>
-                {% empty %}
-                    No times registered for this course...
-                {% endfor %}
-                <a class="btn btn-secondary col-">&gt;</a>
-            {# </div>             #}
+                    <div class="progress">
+                        <div id="student-course-active-progress" class="progress-bar bg-{{ progress_color }} progress-percent-{{ current_present_percent_5 }}" role="progressbar" aria-valuenow="{{ current_present_percent }}" aria-valuemin="0" aria-valuemax="100">{{ current_present_percent }}%</div>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item d-flex text-center flex-wrap w-100" id="student-course-shown-days">
+                <div id="studentPresenceCarousel" class="carousel slide carousel-dark w-100" data-bs-ride="carousel" data-bs-interval="false">
+                    <div class="carousel-indicators">
+                    {% for week in presence %}
+                        <button type="button" data-bs-target="#studentPresenceCarousel" data-bs-slide-to="{{ forloop.counter0 }}" class="{{ forloop.last|yesno:"active," }}" aria-current={{ forloop.last|yesno:"true," }}" aria-label="Slide {{ forloop.counter }}"></button>
+                    {% endfor %}
+                    </div>
+                    <div class="d-flex justify-content-between">
+
+                        <button class="btn btn-secondary mb-3 mr-1" type="button" data-bs-target="#studentPresenceCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+
+                        <div class="carousel-inner">
+                        {% for week in presence %}
+                            <div class="carousel-item px-3 pb-5 flex-wrap justify-content-evenly {{ forloop.last|yesno:"active," }}" id="presence-week-{{ forloop.counter0 }}">
+                            {% for day in week %}
+                                <div class="card p-0 gx-1 mr-0 d-flex text-center flex-wrap">
+                                    <div class="card-header p-1">
+                                        {{ day.0 }}
+                                        {% if day.2 is not None %}
+                                            : {{ day.2.0|date:"d.M" }}
+                                        {% endif %} 
+                                    </div>
+                                    <div class="card-body p-1">
+                                        <p class="mb-0">{{ day.1 }}</p>
+                                        {% if day.2 is not None %}
+                                            <p class="rounded mb-0 p-1 {{ forloop.last|yesno:"latest_week," }} bg-{{ day.2.2 }}">
+                                                {{ day.2.1|floatformat }}
+                                                </br>minutes present
+                                            </p>
+                                        {% else %}
+                                            <p>-</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            </div>
+                        {% endfor %}
+                        </div>
+            
+                        <button class="btn btn-secondary mb-3 mr-1" type="button" data-bs-target="#studentPresenceCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                </div>
             </li>
         </ul>
-        {% if course.is_ongoing %}
-            <p>Course is currently ongoing...</p>
-        {% endif %}
     </div>
+
     <div id="probes-graph-container" class="row" data-url="{% url 'probes:student_course_graph' course_pk=course.pk %}">
         <div class="d-flex justify-content-center">
             <div class="spinner-border" role="status">
@@ -43,6 +89,5 @@
 
 {% block javascript %}
 {% load static %}
-<script src="{% static 'control/course_graph.js' %}" type="text/javascript"></script>
-<script src="{% static 'control/student_attendance.js' %}" type="text/javascript"></script>
+<script src="{% static 'control/student_course_display.js' %}" type="text/javascript"></script>
 {% endblock %}

@@ -76,47 +76,11 @@ class TeacherCourseDetail(DetailView):
         return ctx
 
 
-def get_course_dates(course: Course) -> dict:
-    next_week = timezone.timedelta(days=7)
-    days = {}
-    for day in course.sorted_start_times_set:
-        start_date = course.start_date
-        end_date = course.end_date if course.end_date < timezone.localtime() else timezone.localtime()
-        day_times = []
-        while start_date < end_date:
-            day_times.append(day.get_this_weeks_date(start_date))
-            start_date += next_week
-        days[day] = day_times
-    return days
-
-
 def get_course_attendance_data(course: Course) -> dict:
-    days = get_course_dates(course)
+    # days = get_course_dates(course)
     stud_attendance = []
     for csa in course.coursestudentattendance_set.order_by('student__user__last_name').all():
-        stud_days = []
-        for day, start_times in days.items():
-            stud_attends = []
-            for start in start_times:
-                end = start + timezone.timedelta(seconds=course.duration*60)
-                min_start = start.replace(hour=6, minute=0, second=0, microsecond=0)
-                max_start = end - timezone.timedelta(seconds=course.min_attend_time)
-                ex_arrival = csa.attendance_dates.filter(arrival__range=[min_start, max_start])
-                time_attended = 0
-                for ar in ex_arrival:
-                    ar_start = start if start > ar.arrival else ar.arrival
-                    departure = ar.departure if ar.departure else timezone.localtime()
-                    ar_end = end if end < departure else departure
-                    time_attended += (ar_end - ar_start).total_seconds()
-                status = time_attended / course.min_attend_time * 60
-                if status >= 1:
-                    status = 'success'
-                elif 0.5 >= status > 1:
-                    status = 'warning'
-                else:
-                    status = 'danger'
-                stud_attends.append((start, time_attended, status))
-            stud_days.append({'name': day.get_day_display(), 'time': day.time.strftime('%H:%M'), 'attendances': stud_attends})
+        stud_days = csa.get_attendance()
         stud_attendance.append({
             'email': csa.student.user.email,
             'name': csa.student.user.get_full_name(),
@@ -255,12 +219,15 @@ def set_access_token(request, pk):
         except Course.DoesNotExist:
             raise Http404("No Course matches the given query.")
 
-    token = AccessToken.objects.create(valid_time=course.token_valid_time)
-    token.save()
-    course.access_token = token
-    course.save()
+    token = None
+    if course.access_token and not course.access_token.is_token_expired():
+        token = course.access_token
+    else:
+        token = AccessToken.objects.create(valid_time=course.token_valid_time)
+        course.access_token = token
+        course.save()
 
-    expires = token.created + timezone.timedelta(seconds=token.valid_time*60)
+    expires = token.created + timezone.timedelta(minutes=token.valid_time)
     url = request.build_absolute_uri(course.get_absolute_student_register_url())
 
     context = {
@@ -277,3 +244,9 @@ def set_access_token(request, pk):
 def get_courses_states(request):
     courses = get_users_courses_ongoing_states(request.user.teacher)
     return JsonResponse(courses)
+
+
+# @login_required
+# @teacher_required
+# def enable_manual_registration(self, pk):
+#     pass

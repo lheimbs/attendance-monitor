@@ -222,14 +222,13 @@ def add_departure(mac: WifiInfo, time: timezone.datetime):
             attendance.departure = time
             for day in course.start_times.all():
                 course_start_time = day.get_this_weeks_date()
-                course_end_time = course_start_time + timezone.timedelta(seconds=course.duration*60)
+                course_end_time = course_start_time + timezone.timedelta(minutes=course.duration)
                 start = course_start_time if course_start_time > attendance.arrival else attendance.arrival
                 end = time if time < course_end_time else course_end_time
                 time_present = end - start
                 if time_present.total_seconds() > 0 and time_present.seconds <= course.duration*60:
                     attendance.time_present += time_present.seconds
-            # if time < attendance.arrival + timezone.timedelta(seconds=course.min_attend_time * 60):
-            #     attendance.attended =
+
             attendance.save()
             logger.debug(f"{mac!r}: Add departure at {time} for student {mac.student} and course {course}.")
             logger.debug(f"{mac!r}: {attendance!r}")

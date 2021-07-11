@@ -11,6 +11,6 @@ class BaseUpdatingModel(models.Model):
     def save(self, *args, **kwargs):
         """On save, update timestamps"""
         if not self.pk:
-            self.created = timezone.now()
-        self.modified = timezone.now()
+            self.created = timezone.localtime()
+        self.modified = timezone.localtime()
         return super().save(*args, **kwargs)

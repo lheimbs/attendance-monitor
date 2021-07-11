@@ -43,7 +43,7 @@ class StudentAdminForm(forms.ModelForm):
                 student.wifi_info = models.WifiInfo.objects.create(mac=self.cleaned_data['mac'])
             student.courses.set(
                 self.cleaned_data['courses'],
-                through_defaults={'created': timezone.now(), 'modified': timezone.now()}
+                through_defaults={'created': timezone.localtime(), 'modified': timezone.localtime()}
             )
             self.save_m2m()
         return student
@@ -80,7 +80,7 @@ class CourseAdminForm(forms.ModelForm):
             # if self.instance.teacher in new_additional_teachers:
             #     new_additional_teachers.exclude(pk=self.instance.teacher.user.id)
             course.additional_teachers.set(
-                new_additional_teachers, through_defaults={'created': timezone.now(), 'modified': timezone.now()}
+                new_additional_teachers, through_defaults={'created': timezone.localtime(), 'modified': timezone.localtime()}
             )
             self.save_m2m()
         return course

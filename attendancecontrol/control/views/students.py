@@ -1,4 +1,7 @@
+import logging
+from math import floor
 from typing import Any, Dict
+
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -9,12 +12,13 @@ from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, DetailView, UpdateView
 from django.urls import reverse
 
-from . import probes
+# from . import probes
 from ..decorators import student_required
 from ..forms import StudentSignUpForm, StudentCourseManualRegisrationForm, StudentUpdateForm
 from ..models.users import User, WifiInfo
-from ..models.courses import Course
+from ..models.courses import Course, CourseStudentAttendance
 
+logger = logging.getLogger('control')
 
 class StudentSignUpView(CreateView):
     model = User
@@ -85,7 +89,37 @@ class StudentCourseDetail(DetailView):
         ctx = super().get_context_data(**kwargs)
         # graph = probes.get_students_probe_records(self.request.user.student, self.object)
         # ctx['graph'] = graph
-        ctx['week_nr'] = timezone.localtime().isocalendar()[1]
+        ctx['min_time_percent'] = round((self.object.min_attend_time / self.object.duration) * 100)
+        csa = CourseStudentAttendance.objects.get(
+            course=self.object,
+            student=self.request.user.student
+        )
+        attendance = csa.get_attendance(minutes=True)
+        ctx['presence'] = list(zip(
+            *[[(weekday['name'], weekday['time'], att) for att in weekday['attendances']] for weekday in attendance]
+        ))
+
+        ctx['min_attendance_percent'] = round((self.object.min_attend_time / self.object.duration) * 100)
+        current_present = csa.get_current_attendance(minutes=True)
+        ctx['current_present'] = current_present
+        current_present_percent = (current_present / self.object.duration) * 100
+        ctx['current_present_percent'] = floor(current_present_percent)
+        ctx['current_present_percent_5'] = int(floor(current_present_percent / 5.0) * 5.0)
+        if current_present_percent < ctx['min_attendance_percent'] / 2:
+            color = 'danger'
+        elif current_present_percent < ctx['min_attendance_percent']:
+            color = 'warning'
+        else:
+            color = 'success'
+        ctx['progress_color'] = color
+
+        logger.debug(
+            f"Course {self.object.name} attendance of {self.request.user.email}: "
+            f"current_present={current_present}, "
+            f"current_present_percent={current_present_percent}, "
+            f"current_present_percent_5={ctx['current_present_percent_5']}, "
+            f"progress_color={color}"
+        )
         return ctx
 
     def get_queryset(self):
@@ -126,7 +160,7 @@ def register_student_for_course(request, pk, token):
     )
     if is_authenticated:
         request.user.student.courses.add(
-            course, through_defaults={'created': timezone.now(), 'modified': timezone.now()}
+            course, through_defaults={'created': timezone.localtime(), 'modified': timezone.localtime()}
         )
     messages.add_message(request, msg_type, msg)
     return redirect('student:detail', pk) if redirect_course else redirect('student:courses')

@@ -1,4 +1,3 @@
-.weekday-display-container:first { margin-right: 0; }
 .weekday-display-container { margin-right: 1rem; }
 
 #navbar-user-information-text {
@@ -22,14 +21,61 @@
     padding-left: 0;
 }
 
-.student-day-card-header {
-
+.student-day-card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 6rem;
 }
 
-.student-day-card-current {
-
+.student-day-card-header {
+    min-width: 4rem;
 }
 
 .prev-week-btn {
     margin-right: 1rem;
+}
+
+.centered-link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.carousel-item-next, .carousel-item-prev, .carousel-item.active {
+    display: flex !important;
+}
+
+.w-100 { width: 100% }
+
+.student-course-min-attendance {
+    height: 2px;
+}
+.progress-percent-0 { width: 0%; }
+.progress-percent-1 { width: 1%; }
+.progress-percent-5 { width: 5%; }
+.progress-percent-10 { width: 10%; }
+.progress-percent-15 { width: 15%; }
+.progress-percent-20 { width: 20%; }
+.progress-percent-25 { width: 25%; }
+.progress-percent-30 { width: 30%; }
+.progress-percent-35 { width: 35%; }
+.progress-percent-40 { width: 40%; }
+.progress-percent-45 { width: 45%; }
+.progress-percent-50 { width: 50%; }
+.progress-percent-55 { width: 55%; }
+.progress-percent-60 { width: 60%; }
+.progress-percent-65 { width: 65%; }
+.progress-percent-70 { width: 70%; }
+.progress-percent-75 { width: 75%; }
+.progress-percent-80 { width: 80%; }
+.progress-percent-85 { width: 85%; }
+.progress-percent-90 { width: 90%; }
+.progress-percent-95 { width: 95%; }
+.progress-percent-100 { width: 100%; }
+
+.progress-h { height: 2px; }
+
+p.bg-success {
+    color: var(--bs-light);
 }

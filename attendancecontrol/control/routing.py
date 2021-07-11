@@ -4,4 +4,5 @@ from . import consumers
 
 websocket_urlpatterns = [
     re_path(r'ws/probes/status/course/$', consumers.StudentCourseStatusConsumer.as_asgi()),
+    re_path(r'ws/student/attendance/course/$', consumers.StudentCourseAttendanceConsumer.as_asgi()),
 ]

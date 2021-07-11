@@ -19,10 +19,10 @@
                         {{ student_data.name }} (E-Mail: {{ student_data.email }}, Mat.-Nr.: {{ student_data.mat_nr }})
                     </a>
                     <div class="collapse" id="student-{{ student_data.mat_nr }}">
-                        <div class="card card-body">
+                        <div class="card card-body student-day-row">
                             {% for day in student_data.days %}
-                            <div class="row student-day-row">
-                                <div class="student-day-card bg-info col">
+                            <div class="row flex-nowrap">
+                                <div class="student-day-card bg-info col student-day-card-header">
                                     <ul>
                                         <li>{{ day.name }}</li>
                                         <li>{{ day.time }}</li>
@@ -30,11 +30,11 @@
                                 </div>
                                 {% for attend_rec in day.attendances reversed %}
                                 {% if forloop.first %}
-                                <div class="student-day-card student-day-card-current col bg-{{ attend_rec.2 }}">
+                                    <div class="student-day-card student-day-card-current col bg-{{ attend_rec.2 }}">
                                 {% else %}
-                                <div class="student-day-card col bg-{{ attend_rec.2 }}">
+                                    <div class="student-day-card col bg-{{ attend_rec.2 }}">
                                 {% endif %}
-                                    <p>{{ attend_rec.0|date:'d.m.Y' }}</p>
+                                <p>{{ attend_rec.0|date:'d.m.Y' }}</p>
                                 </div>
                                 {% endfor %}
                             </div>

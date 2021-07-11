@@ -30,7 +30,6 @@ def incoming_probe_view(request):
 
             probe = serializer.save()
             if models.WifiInfo.objects.filter(mac=probe.mac).exists():
-                #  and probe.mac == models.Student.objects.get(user__email='l@lfs.de').wifi_info.mac:
                 # Only consume probes for registered macs
                 w_info = models.WifiInfo.objects.get(mac=probe.mac)
                 probe.mac_addr = w_info
@@ -44,8 +43,6 @@ def incoming_probe_view(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response(status=status.HTTP_403_FORBIDDEN)
 
-
-# TODO: Add identifyer to track correlating arrival/departure cycles
 
 def check_for_departure():
     """Get all macs that are in ARRIVAL state and have a student and check for potential departure."""
@@ -173,14 +170,6 @@ def get_students_attendance_currently_ongoing(request):
             })
             print(course.name, student.wifi_info.mac if student.wifi_info else '', probes)
     return JsonResponse(attendance)
-
-
-@student_required
-def get_student_attendance(request, course_pk, week_nr):
-    student = request.user.student
-    course = student.courses.get(pk=course_pk)
-
-
 
 
 @student_required
@@ -321,7 +310,7 @@ def get_start_date(datetime: datetime, dates: utils.DatetimeRangeList) -> dateti
 
 def get_students_probe_records(student: models.Student,
                                course: models.Course) -> str:
-    query_date = timezone.now()
+    query_date = timezone.localtime()
     course_date = course.start_date
     dates = utils.DatetimeRangeList()
     while course_date < query_date:
@@ -344,9 +333,13 @@ def get_students_probe_records(student: models.Student,
         course_dates.append(start_date.strftime('%a, %d.%m %H:%M'))
         minutes.append((probe_time - start_date).total_seconds() // 60)
 
+    # print(course_dates)
+    height = len(set(course_dates)) * 25
+
     return px.strip(
         x=minutes, y=course_dates,
-        labels={'x': 'Minutes', 'y': 'Dates'},
-        range_x=[-0.1, course.duration],
-        title=f"Recorded Probes for course {course.name}"
+        labels={'x': 'Minute', 'y': 'Date'},
+        range_x=[-0.2, course.duration],
+        title=f"Recorded Probes for course {course.name}",
+        height=height
     )
