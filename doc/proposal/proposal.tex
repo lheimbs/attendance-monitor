@@ -7,15 +7,11 @@
 \usepackage{microtype}
 
 \usepackage[a4paper, right=2cm, top=3cm, left=3cm, bottom=2.5cm]{geometry}
+\usepackage{nameref}
 
-% \usepackage{cite}
 \usepackage{csquotes}
-\usepackage[
-    style=numeric,
-    citestyle=authoryear
-]{biblatex}
+\usepackage[backend=biber,style=alphabetic,citestyle=alphabetic]{biblatex}
 \addbibresource{references.bib} %Imports bibliography file
-
 
 \usepackage{proposal}
 
@@ -29,6 +25,8 @@
 \title{\textbf{Analyse von Wifi Probe-Requests zur Anwesenheitserkennung}}
 \author{Lennart Heimbs, Bachelorstudium Medizintechnik}
 \betreuer{Prof.-Dr. Oliver Hofmann, Betreuender Dozent der Technischen Hochschule Nürnberg}
+
+\usepackage[colorlinks, linkcolor = black, citecolor = black, filecolor = black, urlcolor = blue]{hyperref}
 
 \begin{document}
     \maketitle
